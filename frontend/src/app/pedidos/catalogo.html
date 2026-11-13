@@ -1,0 +1,8 @@
+<main><section class="abertura"><div><p class="eyebrow">CONHEÇA A POWER BEEF</p><h1>Quatro sabores.<br>Qual vai ser o seu?</h1><p>Escolha seus pacotes favoritos e envie seu pedido.</p></div><div class="links-loja"><a routerLink="/carrinho" class="link-loja">Carrinho · {{ carrinho.total() }} pacotes</a><a routerLink="/pedidos">Meus pedidos →</a></div></section>
+  @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> } @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> }
+  <div class="produtos">@for (produto of produtos; track produto.tipo) {
+    <article class="painel produto" [attr.data-sabor]="produto.tipo"><div class="embalagem" aria-hidden="true"><span>POWER<br><strong>BEEF</strong></span><small>{{ produto.nome }}</small></div><p class="eyebrow">{{ produto.detalhe }}</p><h2>{{ produto.nome }}</h2><p>{{ produto.descricao }}</p>
+      <label [for]="'qtd-' + produto.tipo">Quantidade de pacotes</label><input [id]="'qtd-' + produto.tipo" type="number" [(ngModel)]="quantidades[produto.tipo]" min="1" max="1000" step="1"><button class="primario" (click)="adicionar(produto.tipo)">Adicionar ao carrinho</button>
+    </article>
+  }</div><p class="ajuda">O envio do pedido não confirma disponibilidade. Um administrador vai aceitar o pedido ou encaminhá-lo para produção.</p>
+</main>

@@ -1,0 +1,19 @@
+<main><section class="abertura"><div><p class="eyebrow">{{ admin() ? 'GESTÃO DE PEDIDOS' : 'ÁREA DO CLIENTE' }}</p><h1>{{ admin() ? 'Pedidos dos clientes' : 'Meus pedidos' }}</h1><p>{{ admin() ? 'Avalie os pedidos e acompanhe as reservas e a produção.' : 'Acompanhe seus pedidos, da análise à entrega.' }}</p></div><button class="secundario" (click)="carregar()" [disabled]="carregando() || !!alterando()">Atualizar</button></section>
+  @if (erro()) { <p class="mensagem erro" role="alert">{{ erro() }}</p> } @if (aviso()) { <p class="mensagem sucesso" role="status">{{ aviso() }}</p> }
+  <section class="painel"><div class="titulo-lista"><h2>{{ admin() ? 'Todos os pedidos' : 'Seus pedidos' }}</h2><button class="secundario" (click)="limpar()">Limpar filtros</button></div>
+    @if (carregando()) { <p role="status">Carregando pedidos…</p> }
+    <div class="tabela"><table><caption>{{ paginacao.itens().length }} nesta página · {{ filtrados().length }} de {{ enviados().length }} pedidos</caption><thead><tr>
+      <th>Pedido<app-filtro-coluna titulo="Número do pedido" [filtro]="filtros()['_id'] || {}" (filtroChange)="filtrar('_id', $event)" /></th>
+      <th>Data<app-filtro-coluna titulo="Data do pedido" tipo="data" [filtro]="filtros()['createdAt'] || {}" (filtroChange)="filtrar('createdAt', $event)" /></th>
+      @if (admin()) { <th>Cliente<app-filtro-coluna titulo="Nome do cliente" [filtro]="filtros()['clienteNome'] || {}" (filtroChange)="filtrar('clienteNome', $event)" /><app-filtro-coluna titulo="E-mail do cliente" [filtro]="filtros()['clienteEmail'] || {}" (filtroChange)="filtrar('clienteEmail', $event)" /></th> }
+      <th>Pacotes</th><th>Status<app-filtro-coluna titulo="Status do pedido" tipo="selecao" [opcoes]="status" [rotulos]="rotulos" [filtro]="filtros()['status'] || {}" (filtroChange)="filtrar('status', $event)" /></th>@if (admin()) { <th>Ações</th> }
+    </tr></thead><tbody>
+      @for (pedido of paginacao.itens(); track pedido._id) { <tr><td><strong [title]="pedido._id">#{{ pedido._id.slice(-8).toUpperCase() }}</strong><details><summary>Histórico</summary>@for (evento of pedido.historico; track $index) { <p>{{ rotulos[evento.status] }}<small>{{ evento.data | date:'dd/MM/yyyy HH:mm' }}</small></p> }</details></td><td>{{ pedido.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+        @if (admin()) { <td>{{ pedido.clienteNome }}<small>{{ pedido.clienteEmail }}</small></td> }
+        <td>@for (item of pedido.itens; track item.tipo) { <div class="item-pedido"><strong>{{ item.quantidade }} × {{ nome(item.tipo) }}</strong>@if (pedido.status !== 'pedido_enviado') { <small>{{ item.reservada }} alocados · {{ item.quantidade - item.reservada }} pendentes</small> }</div> }</td>
+        <td><span class="status" [class.disponivel]="pedido.status === 'aceito' || pedido.status === 'entregue'">{{ rotulos[pedido.status] }}</span></td>
+        @if (admin()) { <td><div class="acoes-pedido">@for (status of opcoes(pedido); track status) { <button type="button" [class.primario]="status === 'aceito'" (click)="alterar(pedido, status)" [disabled]="!!alterando() || carregando()">{{ alterando() === pedido._id ? 'Atualizando…' : status === 'aceito' ? 'Aceitar' : status === 'em_producao' ? 'Colocar em produção' : status === 'entregue' ? 'Marcar entregue' : 'Encerrar' }}</button> }@if (!opcoes(pedido).length) { <small>Pedido finalizado</small> }</div></td> }
+      </tr> } @empty { <tr><td [attr.colspan]="admin() ? 6 : 4" class="vazio">Nenhum pedido encontrado.</td></tr> }
+    </tbody></table></div><app-paginador [controle]="paginacao" titulo="pedidos" [desabilitado]="carregando() || !!alterando()" />
+  </section>
+</main>

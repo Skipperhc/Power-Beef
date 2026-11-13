@@ -1,0 +1,8 @@
+<main class="tela-formulario"><section class="abertura"><div><p class="eyebrow">SEU PEDIDO</p><h1>Carrinho</h1><p>Confira os sabores e as quantidades antes de enviar.</p></div></section>
+  @if (erro()) { <p class="mensagem erro" role="alert">{{ erro() }}</p> }
+  @if (!carrinho.itens().length) { <section class="painel vazio"><h2>Seu carrinho está vazio</h2><a routerLink="/cliente">Conhecer os sabores</a></section> }
+  @else { <form #form="ngForm" (ngSubmit)="finalizar(form)" class="painel"><fieldset [disabled]="enviando()">
+    @for (item of carrinho.itens(); track item.tipo) { <div class="item-carrinho"><h2>{{ carrinho.nome(item.tipo) }}</h2><label [for]="'cart-' + item.tipo">Pacotes<input [id]="'cart-' + item.tipo" [name]="item.tipo" type="number" required min="1" max="1000" pattern="^[0-9]+$" [ngModel]="item.quantidade" (ngModelChange)="carrinho.alterar(item.tipo, $event)"></label><button type="button" class="perigo" (click)="carrinho.remover(item.tipo)">Remover</button></div> }
+    <p><strong>Total: {{ carrinho.total() }} pacotes</strong></p><p class="ajuda">Ao finalizar, o pedido será enviado para análise. A reserva de estoque ocorre após a avaliação do administrador. Nenhum pagamento é processado nesta etapa.</p><button class="primario" type="submit" [disabled]="form.invalid">{{ enviando() ? 'Enviando…' : 'Finalizar e enviar pedido' }}</button><a routerLink="/cliente" class="voltar-loja">Continuar escolhendo</a>
+  </fieldset></form> }
+</main>
