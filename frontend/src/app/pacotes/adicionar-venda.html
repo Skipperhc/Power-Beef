@@ -1,0 +1,11 @@
+﻿<main class="tela-formulario"><section class="abertura"><div><p class="eyebrow">VENDAS</p><h1>Adicionar venda</h1><p>Registre a saída de pacotes do estoque.</p></div></section>  @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> } @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> }  <section class="painel" style="margin-bottom:24px" aria-labelledby="venda-titulo">
+    <h2 id="venda-titulo">Registrar venda</h2><p class="ajuda">Informe sabor, quantidade e data. Os pacotes com vencimento mais próximo serão selecionados primeiro.</p>
+    <form #formVenda="ngForm" (ngSubmit)="registrarVenda(formVenda)"><fieldset [disabled]="ocupado() || carregando() || !!confirmar() || !!editarId()">
+      <label for="venda-tipo">Sabor vendido *</label><select id="venda-tipo" name="tipoVenda" [(ngModel)]="venda.tipo" required><option value="" disabled>Selecione o sabor</option>@for (sabor of sabores; track sabor) { <option [value]="sabor">{{ sabor }}</option> }</select>
+      @if (venda.tipo) { <p class="ajuda">{{ disponivelVenda() }} pacote(s) em estoque desse sabor.</p> }
+      <label for="venda-quantidade">Quantidade vendida *</label><input id="venda-quantidade" name="quantidadeVenda" type="number" [(ngModel)]="venda.quantidade" required min="1" max="1000" step="1">
+      <label for="venda-data">Data da venda *</label><input id="venda-data" name="dataVenda" type="date" [(ngModel)]="venda.dataVenda" required>
+      <button class="primario" style="margin-top:16px" type="submit" [disabled]="formVenda.invalid || !vendaValida()">{{ ocupado() ? 'Registrando…' : 'Registrar venda' }}</button>
+    </fieldset></form>
+  </section>
+</main>

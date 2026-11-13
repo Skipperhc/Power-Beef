@@ -1,0 +1,19 @@
+﻿<main class="tela-formulario"><section class="abertura"><div><p class="eyebrow">ESTOQUE</p><h1>Adicionar pacotes</h1><p>Informe o lote e a quantidade de unidades.</p></div></section>  @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> } @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> }    <section class="painel formulario"><h2>{{ editarId() ? 'Editar pacote' : 'Adicionar pacotes' }}</h2><p class="ajuda">{{ editarId() ? 'Você está editando uma unidade.' : 'Adicione vários pacotes com o mesmo sabor, lote e datas.' }}</p>
+      <form #form="ngForm" (ngSubmit)="salvar(form)"><fieldset [disabled]="ocupado() || !!confirmar()">
+        <label for="tipo">Sabor *</label><select id="tipo" name="tipo" [(ngModel)]="dados.tipo" required><option value="" disabled>Selecione o sabor</option>@for (sabor of sabores; track sabor) { <option [value]="sabor">{{ sabor }}</option> }</select>
+        <label for="lote">Lote *</label><input id="lote" name="lote" [(ngModel)]="dados.lote" required pattern=".*\S.*" maxlength="100" placeholder="Ex.: PB-20261101">
+        @if (!editarId()) {
+          <label for="quantidade">Quantidade de pacotes *</label><input id="quantidade" name="quantidade" type="number" [(ngModel)]="quantidade" min="1" max="1000" step="1" required aria-describedby="quantidade-ajuda">
+          <p id="quantidade-ajuda" class="ajuda">De 1 a 1000 pacotes por cadastro.</p>
+          @if (!quantidadeValida()) { <p class="erro">Informe uma quantidade inteira entre 1 e 1000.</p> }
+        }
+        <label for="fabricacao">Data de fabricação *</label><input id="fabricacao" name="fabricacao" type="date" [(ngModel)]="dados.dataFabricacao" required>
+        <label for="validade">Validade *</label><input id="validade" name="validade" type="date" [(ngModel)]="dados.validade" [min]="dados.dataFabricacao" required>
+        @if (datasInvalidas()) { <p class="erro">A validade não pode ser anterior à fabricação.</p> }
+        <label for="status">Status *</label><select id="status" name="status" [(ngModel)]="dados.status" required>@for (estado of estados; track estado.valor) { <option [value]="estado.valor">{{ estado.nome }}</option> }</select>
+        <label for="observacoes">Observações</label><textarea id="observacoes" name="observacoes" [(ngModel)]="dados.observacoes" maxlength="2000" rows="3" placeholder="Informações adicionais"></textarea>
+        <p class="ajuda">* Campos obrigatórios</p><button class="primario" type="submit" [disabled]="form.invalid || datasInvalidas() || carregando() || (!editarId() && !quantidadeValida())">{{ ocupado() ? 'Salvando…' : editarId() ? 'Salvar alterações' : 'Adicionar pacotes' }}</button>
+        @if (editarId()) { <button type="button" class="secundario" (click)="cancelar(form)">Cancelar edição</button> }
+      </fieldset></form>
+    </section>
+</main>

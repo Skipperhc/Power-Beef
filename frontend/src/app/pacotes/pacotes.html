@@ -1,0 +1,50 @@
+﻿<main>
+  <section class="abertura"><div><p class="eyebrow">CONTROLE DE PACOTES</p><h1>Listar pacotes</h1><p>Consulte, filtre e atualize os pacotes cadastrados.</p></div><div class="contador"><strong>{{ estoque() }}</strong><span>pacotes em estoque</span></div></section>
+  @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> }
+  @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> }
+  <div class="layout layout-listagem">
+@if (editarId()) {    <section class="painel formulario"><h2>{{ editarId() ? 'Editar pacote' : 'Adicionar pacotes' }}</h2><p class="ajuda">{{ editarId() ? 'Você está editando uma unidade.' : 'Adicione vários pacotes com o mesmo sabor, lote e datas.' }}</p>
+      <form #form="ngForm" (ngSubmit)="salvar(form)"><fieldset [disabled]="ocupado() || !!confirmar()">
+        <label for="tipo">Sabor *</label><select id="tipo" name="tipo" [(ngModel)]="dados.tipo" required><option value="" disabled>Selecione o sabor</option>@for (sabor of sabores; track sabor) { <option [value]="sabor">{{ sabor }}</option> }</select>
+        <label for="lote">Lote *</label><input id="lote" name="lote" [(ngModel)]="dados.lote" required pattern=".*\S.*" maxlength="100" placeholder="Ex.: PB-20261101">
+        @if (!editarId()) {
+          <label for="quantidade">Quantidade de pacotes *</label><input id="quantidade" name="quantidade" type="number" [(ngModel)]="quantidade" min="1" max="1000" step="1" required aria-describedby="quantidade-ajuda">
+          <p id="quantidade-ajuda" class="ajuda">De 1 a 1000 pacotes por cadastro.</p>
+          @if (!quantidadeValida()) { <p class="erro">Informe uma quantidade inteira entre 1 e 1000.</p> }
+        }
+        <label for="fabricacao">Data de fabricação *</label><input id="fabricacao" name="fabricacao" type="date" [(ngModel)]="dados.dataFabricacao" required>
+        <label for="validade">Validade *</label><input id="validade" name="validade" type="date" [(ngModel)]="dados.validade" [min]="dados.dataFabricacao" required>
+        @if (datasInvalidas()) { <p class="erro">A validade não pode ser anterior à fabricação.</p> }
+        <label for="status">Status *</label><select id="status" name="status" [(ngModel)]="dados.status" required>@for (estado of estados; track estado.valor) { <option [value]="estado.valor">{{ estado.nome }}</option> }</select>
+        <label for="observacoes">Observações</label><textarea id="observacoes" name="observacoes" [(ngModel)]="dados.observacoes" maxlength="2000" rows="3" placeholder="Informações adicionais"></textarea>
+        <p class="ajuda">* Campos obrigatórios</p><button class="primario" type="submit" [disabled]="form.invalid || datasInvalidas() || carregando() || (!editarId() && !quantidadeValida())">{{ ocupado() ? 'Salvando…' : editarId() ? 'Salvar alterações' : 'Adicionar pacotes' }}</button>
+        @if (editarId()) { <button type="button" class="secundario" (click)="cancelar(form)">Cancelar edição</button> }
+      </fieldset></form>
+    </section>
+}    <section class="painel listagem"><div class="titulo-lista"><div><h2>Pacotes cadastrados</h2><p class="ajuda" role="status">{{ paginacao.itens().length }} pacotes nesta página · {{ filtrados().length }} encontrados de {{ pacotes().length }} cadastrados</p></div><button type="button" class="secundario" (click)="carregar()" [disabled]="carregando() || ocupado() || !!confirmar()">Atualizar</button><button type="button" class="secundario" (click)="limparFiltros()">Limpar filtros</button></div>
+      @if (carregando()) { <p role="status" class="vazio">Carregando pacotes…</p> }
+      @else if (!pacotes().length) { <div class="vazio"><h3>Nenhum pacote para mostrar</h3><p>Use Adicionar pacotes no menu lateral para cadastrar o primeiro lote.</p></div> }
+      @else { <div class="tabela"><table><caption>Estoque de Power Beef</caption><thead><tr>
+        <th scope="col">Sabor / lote
+          <app-filtro-coluna titulo="Sabor" tipo="selecao" [opcoes]="tiposUnicos()" [filtro]="filtros()['tipo'] || {}" (filtroChange)="filtrarColuna('tipo', $event)" />
+          <app-filtro-coluna titulo="Lote" [filtro]="filtros()['lote'] || {}" (filtroChange)="filtrarColuna('lote', $event)" />
+          <app-filtro-coluna titulo="Observações" [filtro]="filtros()['observacoes'] || {}" (filtroChange)="filtrarColuna('observacoes', $event)" />
+        </th>
+        <th scope="col">Fabricação<app-filtro-coluna titulo="Fabricação" tipo="data" [filtro]="filtros()['dataFabricacao'] || {}" (filtroChange)="filtrarColuna('dataFabricacao', $event)" /></th>
+        <th scope="col">Validade<app-filtro-coluna titulo="Validade" tipo="data" [filtro]="filtros()['validade'] || {}" (filtroChange)="filtrarColuna('validade', $event)" /></th>
+        <th scope="col">Status<app-filtro-coluna titulo="Status" tipo="selecao" [opcoes]="statusUnicos()" [rotulos]="rotulosStatus" [filtro]="filtros()['status'] || {}" (filtroChange)="filtrarColuna('status', $event)" /></th>
+        <th scope="col">Venda<app-filtro-coluna titulo="Venda" tipo="data" [filtro]="filtros()['dataVenda'] || {}" (filtroChange)="filtrarColuna('dataVenda', $event)" /></th>
+        <th scope="col">Ações</th></tr></thead><tbody>
+        @for (pacote of paginacao.itens(); track pacote._id) { <tr><td><strong class="sabor">{{ pacote.tipo }}</strong><small>{{ pacote.lote }}</small>@if (pacote.observacoes) { <small class="observacao">{{ pacote.observacoes }}</small> }</td><td>{{ pacote.dataFabricacao | date:'dd/MM/yyyy':'UTC' }}</td><td>{{ pacote.validade | date:'dd/MM/yyyy':'UTC' }}</td><td><span class="status" [class.disponivel]="pacote.status === 'em_estoque'">{{ nomeStatus(pacote.status) }}</span></td><td>{{ pacote.dataVenda ? (pacote.dataVenda | date:"dd/MM/yyyy":"UTC") : "—" }}</td><td class="acoes"><button type="button" (click)="editar(pacote)" [disabled]="ocupado() || !!confirmar() || !!pacote.pedido">Editar</button><button type="button" class="perigo" (click)="confirmar.set(pacote)" [disabled]="ocupado() || !!confirmar() || !!pacote.pedido">Excluir</button></td></tr> }
+      @if (!filtrados().length) { <tr><td colspan="6" class="vazio">Nenhum pacote corresponde aos filtros.</td></tr> }</tbody></table></div><app-paginador [controle]="paginacao" titulo="pacotes" [desabilitado]="ocupado() || !!confirmar()" /> }
+    </section>
+  </div>
+  @if (confirmar(); as pacote) { <section class="confirmacao" role="alertdialog" aria-modal="true" aria-labelledby="confirmar-titulo"><div class="painel"><h2 id="confirmar-titulo">Excluir pacote?</h2><p>{{ pacote.tipo }} · lote {{ pacote.lote }}. Esta ação remove o registro permanentemente.</p><button type="button" class="primario" (click)="excluir()" [disabled]="ocupado()">{{ ocupado() ? 'Excluindo…' : 'Confirmar exclusão' }}</button><button type="button" class="secundario" (click)="confirmar.set(null)" [disabled]="ocupado()">Cancelar</button></div></section> }
+</main>
+
+
+
+
+
+
+
