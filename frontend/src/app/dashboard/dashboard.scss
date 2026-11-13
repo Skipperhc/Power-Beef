@@ -1,0 +1,8 @@
+.link-primario { display: inline-block; padding: 14px 20px; background: #9d4516; color: white; border-radius: 7px; text-decoration: none; font-weight: 600; white-space: nowrap; }
+.resumo { display: flex; align-items: baseline; gap: 14px; margin-bottom: 24px; background: #2d2822; color: #fff; border: none; } .resumo strong { font-size: 36px; margin-left: auto; } .resumo span:last-child { color: #d8cfc4; }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.card { position: relative; overflow: hidden; } .card h3 { text-transform: capitalize; font-size: 19px; margin: 14px 0 28px; } .card p { color: #6c665f; font-size: 13px; margin-bottom: 0; } .quantidade { display: block; font-size: 48px; line-height: 1; } .indicador { display: block; width: 30px; height: 5px; border-radius: 5px; background: #39824f; }
+[data-sabor='picante'] .indicador { background: #bc3e31; } [data-sabor='churrasco'] .indicador { background: #9b622d; } [data-sabor='original'] .indicador { background: #ca972e; }
+@media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .cards { grid-template-columns: 1fr; } .resumo { flex-wrap: wrap; } .titulo-lista { align-items: start; } }
+.vendas { margin-top: 32px; }

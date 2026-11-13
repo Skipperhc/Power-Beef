@@ -1,0 +1,39 @@
+﻿<main>
+  <section class="abertura">
+    <div><p class="eyebrow">VISÃO GERAL</p><h1>Dashboard</h1><p>Acompanhe o estoque de Power Beef por sabor.</p></div>
+    <a routerLink="/pacotes" class="link-primario">Gerenciar pacotes →</a>
+  </section>
+  <section aria-labelledby="estoque-titulo" [attr.aria-busy]="carregando()">
+    <div class="titulo-lista"><div><h2 id="estoque-titulo">Estoque por sabor</h2><p class="ajuda">Somente pacotes com status “Em estoque”. Vendidos e descartados ficam fora da contagem.</p></div><button class="secundario" type="button" (click)="carregar()" [disabled]="carregando()">{{ carregando() ? 'Atualizando…' : 'Atualizar' }}</button></div>
+    @if (erro()) {
+      <p role="alert" class="mensagem erro">Não foi possível consultar o estoque. Verifique a conexão com o backend e tente atualizar novamente.</p>
+    } @else {
+      <div class="resumo painel"><span>Total em estoque</span><strong>{{ carregando() ? '—' : total() }}</strong><span>pacotes</span></div>
+      <div class="cards">
+        @for (sabor of sabores(); track sabor.tipo) {
+          <article class="painel card" [attr.data-sabor]="sabor.tipo"><span class="indicador" aria-hidden="true"></span><h3>{{ sabor.tipo }}</h3><strong class="quantidade">{{ carregando() ? '—' : sabor.quantidade }}</strong><p>pacotes em estoque</p></article>
+        }
+      </div>
+      @if (carregando()) { <p role="status" class="ajuda">Carregando estoque…</p> }
+      @else if (total() === 0) { <p class="ajuda">Nenhum pacote em estoque. <a routerLink="/pacotes">Gerenciar pacotes</a>.</p> }
+    }
+  </section>
+  <section class="painel vendas" aria-labelledby="vendas-titulo" [attr.aria-busy]="carregando()">
+    <div class="titulo-lista"><div><h2 id="vendas-titulo">Vendas</h2><p class="ajuda">Resumo por dia, sabor e lote. Vendas do mesmo dia são somadas.</p></div><button class="secundario" type="button" (click)="limparFiltrosVendas()">Limpar filtros</button></div>
+    @if (carregando()) { <p role="status">Carregando vendas…</p> }
+    @else if (erro()) { <p>As vendas não puderam ser carregadas. Use Atualizar para tentar novamente.</p> }
+    @else {
+      <p class="ajuda" role="status">{{ paginacaoVendas.itens().length }} registros nesta página · {{ vendasFiltradas().length }} encontrados de {{ vendas().length }} registros · {{ totalVendido() }} pacotes vendidos nos resultados</p>
+      <div class="tabela"><table><caption>Vendas registradas</caption><thead><tr>
+        <th scope="col">Data da venda<app-filtro-coluna titulo="Data da venda" tipo="data" [filtro]="filtrosVendas()['dataVenda'] || {}" (filtroChange)="filtrarVenda('dataVenda', $event)" /></th>
+        <th scope="col">Sabor / lote<app-filtro-coluna titulo="Sabor vendido" tipo="selecao" [opcoes]="tiposVendidos()" [filtro]="filtrosVendas()['tipo'] || {}" (filtroChange)="filtrarVenda('tipo', $event)" /><app-filtro-coluna titulo="Lote vendido" [filtro]="filtrosVendas()['lote'] || {}" (filtroChange)="filtrarVenda('lote', $event)" /></th>
+        <th scope="col">Quantidade<app-filtro-coluna titulo="Quantidade vendida" tipo="selecao" [opcoes]="quantidadesVendidas()" [filtro]="filtrosVendas()['quantidade'] || {}" (filtroChange)="filtrarVenda('quantidade', $event)" /></th>
+      </tr></thead><tbody>
+        @for (venda of paginacaoVendas.itens(); track venda.chave) { <tr><td>{{ venda.dataVenda ? (venda.dataVenda | date:'dd/MM/yyyy':'UTC') : 'Sem data registrada' }}</td><td><strong class="sabor">{{ venda.tipo }}</strong><small>{{ venda.lote || 'Sem lote' }}</small></td><td>{{ venda.quantidade }}</td></tr> }
+        @if (!vendasFiltradas().length) { <tr><td colspan="3" class="vazio">{{ vendas().length ? 'Nenhuma venda corresponde aos filtros.' : 'Nenhuma venda registrada.' }}</td></tr> }
+      </tbody></table></div><app-paginador [controle]="paginacaoVendas" titulo="vendas" />
+    }
+  </section>
+</main>
+
+
