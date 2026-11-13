@@ -1,0 +1,24 @@
+﻿:host { display: block; color: #272521; }
+nav { display: flex; gap: 8px; } nav a { color: #eee9df; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; } nav a:hover, nav a.ativo { background: #453b30; color: #ffbd74; }
+header { background: #231f1b; color: #eee9df; padding: 22px 5%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.marca { color: white; text-decoration: none; font-size: 24px; letter-spacing: 2px; font-weight: 800; } .marca strong { color: #ffad51; }
+main { max-width: 1440px; margin: auto; padding: 36px 4%; }
+.abertura { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
+.eyebrow { font-size: 12px; letter-spacing: 2px; font-weight: 700; color: #855019; } h1 { margin: 8px 0; font-size: clamp(28px, 4vw, 42px); } h2 { margin: 0 0 8px; font-size: 21px; }
+.contador { border-left: 3px solid #c76a22; padding: 8px 24px; white-space: nowrap; } .contador strong { display: block; font-size: 38px; } .contador span, .ajuda { color: #6c665f; font-size: 13px; }
+.layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 24px; align-items: start; }
+.painel { background: #fff; border: 1px solid #e2ddd4; border-radius: 12px; padding: 24px; }
+fieldset { padding: 0; border: 0; min-width: 0; margin: 0; } label { display: block; font-size: 14px; font-weight: 600; margin: 18px 0 7px; }
+input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid #c8c2b8; border-radius: 6px; padding: 11px; font: inherit; background: white; color: inherit; } textarea { resize: vertical; }
+button { font: inherit; font-size: 13px; border: 0; border-radius: 6px; padding: 10px 12px; cursor: pointer; background: #f3efe9; color: #393229; font-weight: 600; }
+button:hover { filter: brightness(.95); } button:disabled { cursor: default; opacity: .55; } :focus-visible { outline: 3px solid #c76a22; outline-offset: 3px; }
+.primario { background: #9d4516; color: white; } .formulario .primario { width: 100%; } .secundario { border: 1px solid #d8d1c7; background: white; } .formulario .secundario { margin-top: 10px; width: 100%; }
+.titulo-lista { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; } .titulo-lista p { margin: 0; }
+.tabela { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 13px; text-align: left; } caption { text-align: left; margin-bottom: 12px; color: #6c665f; } th { color: #6c665f; font-size: 12px; background: #faf8f4; } th, td { padding: 14px 10px; border-bottom: 1px solid #ede9e2; } td { vertical-align: top; } td small { display: block; margin-top: 5px; color: #6c665f; } .sabor { text-transform: capitalize; } .observacao { max-width: 220px; overflow-wrap: anywhere; } .acoes { white-space: nowrap; } .acoes button { padding: 6px; margin-right: 4px; } .perigo { color: #a32924; background: #fff2f0; }
+.status { display: inline-block; padding: 5px 8px; border-radius: 20px; background: #f0eded; white-space: nowrap; font-size: 11px; } .disponivel { color: #27603e; background: #e8f3ea; }
+.vazio { text-align: center; padding: 50px 8px; color: #6c665f; } .mensagem { padding: 14px 18px; border-radius: 6px; } .erro { color: #9a2923; background: #fff0ed; } .sucesso { color: #27603e; background: #e8f3ea; }
+.confirmacao { position: fixed; inset: 0; background: #201c18aa; display: grid; place-items: center; padding: 24px; z-index: 10; } .confirmacao .painel { max-width: 440px; } .confirmacao button { margin: 12px 8px 0 0; }
+@media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } .abertura { align-items: start; } }
+@media (max-width: 560px) { header, .abertura { flex-direction: column; align-items: start; } .painel { padding: 18px; } main { padding: 24px 16px; } }
+.titulo-lista { flex-wrap: wrap; } th { vertical-align: top; } .listagem { min-width: 0; }
+.layout-listagem { grid-template-columns: minmax(0, 1fr); } .tela-formulario { max-width: 760px; }

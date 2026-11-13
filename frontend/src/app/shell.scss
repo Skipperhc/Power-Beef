@@ -1,0 +1,13 @@
+﻿.conteudo-app { margin-right: 44px; transition: margin-right .2s ease; }
+.conteudo-app.menu-expandido { margin-right: 270px; }
+.menu-lateral { position: fixed; right: 0; top: 90px; z-index: 8; width: 44px; }
+.menu-lateral.aberto { width: 270px; background: #231f1b; color: #fff; border-radius: 10px 0 0 10px; box-shadow: -4px 6px 20px #231f1b22; }
+.alternar-menu { width: 44px; height: 44px; padding: 0; border-radius: 8px 0 0 8px; background: #9d4516; color: white; font-size: 24px; }
+.menu-lateral nav { display: flex; flex-direction: column; padding: 16px 14px 24px; gap: 8px; max-height: calc(100dvh - 160px); overflow-y: auto; }
+.menu-lateral nav[hidden] { display: none; }
+.menu-lateral h2 { padding: 4px 16px 12px; font-size: 15px; color: #d8cfc4; }
+.layout-listagem { grid-template-columns: minmax(0, 1fr); }
+.tela-formulario { max-width: 760px; }
+@media (max-width: 760px) { .conteudo-app.menu-expandido { margin-right: 44px; } .menu-lateral.aberto { width: min(270px, calc(100vw - 32px)); } }
+@media (prefers-reduced-motion: reduce) { .conteudo-app { transition: none; } }
+
