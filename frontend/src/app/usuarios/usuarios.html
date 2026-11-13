@@ -1,0 +1,33 @@
+<main>
+  <section class="abertura"><div><p class="eyebrow">ADMINISTRAÇÃO</p><h1>Usuários</h1><p>Gerencie as contas e os e-mails com acesso de administrador.</p></div><button class="secundario" (click)="carregar()" [disabled]="ocupado()">Atualizar</button></section>
+  @if (erro()) { <p class="mensagem erro" role="alert">{{ erro() }}</p> } @if (aviso()) { <p class="mensagem sucesso" role="status">{{ aviso() }}</p> }
+  <div class="formularios-usuarios">
+    <section class="painel formulario"><h2>{{ editando() ? 'Editar usuário' : 'Adicionar usuário' }}</h2>
+      <form #form="ngForm" (ngSubmit)="salvar(form)"><fieldset [disabled]="ocupado()">
+        <label for="usuario-nome">Nome *</label><input id="usuario-nome" name="nome" [(ngModel)]="dados.nome" required maxlength="100">
+        <label for="usuario-email">E-mail *</label><input id="usuario-email" name="email" type="email" email [(ngModel)]="dados.email" required maxlength="254" [readonly]="editando()?.provedor === 'google'">
+        @if (!editando()) { <label for="usuario-senha">Senha inicial *</label><input id="usuario-senha" name="senha" type="password" [(ngModel)]="dados.senha" required minlength="12" maxlength="128" autocomplete="new-password"><p class="ajuda">12 a 128 caracteres. A senha nunca aparece na listagem.</p> }
+        <label for="usuario-perfil">Perfil *</label><select id="usuario-perfil" name="perfil" [(ngModel)]="dados.perfil" required><option value="cliente">Cliente</option><option value="administrador">Administrador</option></select>
+        <label class="checkbox"><input type="checkbox" name="ativo" [(ngModel)]="dados.ativo"> Conta ativa</label>
+        <button class="primario" type="submit" [disabled]="form.invalid">{{ editando() ? 'Salvar alterações' : 'Criar usuário' }}</button>
+        @if (editando()) { <button type="button" class="secundario" (click)="cancelar(form)">Cancelar edição</button> }
+      </fieldset></form>
+    </section>
+    <section class="painel"><h2>E-mails administradores</h2><p class="ajuda">Autorize um e-mail existente ou futuro. Novas contas autorizadas devem entrar com Google para confirmar a identidade.</p>
+      <form #formAdmin="ngForm" (ngSubmit)="autorizar(formAdmin)"><fieldset [disabled]="ocupado()"><label for="email-admin">E-mail *</label><input id="email-admin" name="emailAdmin" type="email" email [(ngModel)]="emailAdmin" required maxlength="254"><button class="primario" type="submit" [disabled]="formAdmin.invalid">Autorizar administrador</button></fieldset></form>
+      <ul class="emails-admin">@for (email of emails(); track email._id) { <li><span>{{ email.email }}</span><button type="button" class="perigo" (click)="revogar(email)" [disabled]="ocupado() || email.email === auth.usuario()?.email">Remover acesso</button></li> } @empty { <li>Nenhum e-mail autorizado.</li> }</ul>
+    </section>
+  </div>
+  <section class="painel"><div class="titulo-lista"><div><h2>Contas cadastradas</h2><p class="ajuda">Cadastros por e-mail e primeiro acesso com Google aparecem aqui.</p></div><button class="secundario" (click)="limpar()">Limpar filtros</button></div>
+    @if (ocupado()) { <p role="status">Carregando…</p> }
+    <div class="tabela"><table><caption>{{ paginacao.itens().length }} nesta página · {{ filtrados().length }} de {{ usuarios().length }} usuários</caption><thead><tr>
+      <th>Nome<app-filtro-coluna titulo="Nome" [filtro]="filtros()['nome'] || {}" (filtroChange)="filtrar('nome', $event)" /></th>
+      <th>E-mail<app-filtro-coluna titulo="E-mail" [filtro]="filtros()['email'] || {}" (filtroChange)="filtrar('email', $event)" /></th>
+      <th>Perfil<app-filtro-coluna titulo="Perfil" tipo="selecao" [opcoes]="['administrador', 'cliente']" [filtro]="filtros()['perfil'] || {}" (filtroChange)="filtrar('perfil', $event)" /></th>
+      <th>Login<app-filtro-coluna titulo="Provedor" tipo="selecao" [opcoes]="['email', 'google']" [filtro]="filtros()['provedor'] || {}" (filtroChange)="filtrar('provedor', $event)" /></th>
+      <th>Ativo<app-filtro-coluna titulo="Conta ativa" tipo="selecao" [opcoes]="['true', 'false']" [rotulos]="{ true: 'Sim', false: 'Não' }" [filtro]="filtros()['ativo'] || {}" (filtroChange)="filtrar('ativo', $event)" /></th>
+      <th>Cadastro<app-filtro-coluna titulo="Data do cadastro" tipo="data" [filtro]="filtros()['createdAt'] || {}" (filtroChange)="filtrar('createdAt', $event)" /></th><th>Último login</th><th>Ações</th>
+    </tr></thead><tbody>@for (u of paginacao.itens(); track u.id) { <tr><td>{{ u.nome }}</td><td>{{ u.email }}</td><td>{{ u.perfil === 'administrador' ? 'Administrador' : 'Cliente' }}</td><td>{{ u.provedor === 'google' ? 'Google' : 'E-mail' }}</td><td>{{ u.ativo ? 'Sim' : 'Não' }}</td><td>{{ u.createdAt | date:'dd/MM/yyyy':'UTC' }}</td><td>{{ u.ultimoLogin ? (u.ultimoLogin | date:'dd/MM/yyyy HH:mm') : 'Sem registro' }}</td><td class="acoes"><button (click)="editar(u, form)" [disabled]="ocupado() || u.id === auth.usuario()?.id">Editar</button><button class="perigo" (click)="excluir(u, form)" [disabled]="ocupado() || u.id === auth.usuario()?.id">Excluir</button></td></tr> } @empty { <tr><td colspan="8" class="vazio">Nenhum usuário encontrado.</td></tr> }</tbody></table></div>
+    <app-paginador [controle]="paginacao" titulo="usuários" [desabilitado]="ocupado()" />
+  </section>
+</main>
