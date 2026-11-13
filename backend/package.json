@@ -1,0 +1,21 @@
+{
+  "name": "power-beef-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "check": "node --check src/server.js && node --check src/database/MongoConnection.js && node --check src/models/Pacote.js",
+    "test": "node --test",
+    "db:check": "node --env-file-if-exists=.env src/database/checkConnection.js",
+    "admin:grant": "node --env-file-if-exists=.env src/database/grantAdmin.js"
+  },
+  "dependencies": {
+    "google-auth-library": "^11.3.4",
+    "mongoose": "^9.12.1"
+  }
+}
