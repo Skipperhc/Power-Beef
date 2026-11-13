@@ -1,6 +1,6 @@
 # Power Beef
 
-Base para o sistema de gestão do Power Beef, independente do projeto de mapa de supermercados.
+Base para o sistema de gestão do Power Beef.
 
 ## Projetos
 
