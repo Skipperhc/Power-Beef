@@ -1,0 +1,14 @@
+<main class="tela-formulario login"><section class="painel">
+  <p class="eyebrow">POWER BEEF · GESTÃO</p><h1>{{ cadastro() ? 'Crie sua conta' : 'Acesse sua conta' }}</h1><p class="ajuda">Entre para gerenciar o estoque e as vendas.</p>
+  @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> }
+  <form #form="ngForm" (ngSubmit)="enviar(form)"><fieldset [disabled]="ocupado()">
+    @if (cadastro()) { <label for="nome">Nome</label><input id="nome" name="nome" [(ngModel)]="dados.nome" required maxlength="100" autocomplete="name"> }
+    <label for="email">E-mail</label><input id="email" name="email" [(ngModel)]="dados.email" type="email" email required maxlength="254" autocomplete="email">
+    <label for="senha">Senha</label><input id="senha" name="senha" [(ngModel)]="dados.senha" type="password" required [minlength]="cadastro() ? 12 : 1" maxlength="128" [autocomplete]="cadastro() ? 'new-password' : 'current-password'">
+    @if (cadastro()) { <p class="ajuda">Use de 12 a 128 caracteres.</p><label for="confirmar-senha">Confirmar senha</label><input id="confirmar-senha" name="confirmarSenha" [(ngModel)]="confirmarSenha" type="password" required autocomplete="new-password"> }
+    <button type="submit" class="primario" [disabled]="form.invalid">{{ ocupado() ? 'Aguarde…' : cadastro() ? 'Criar conta' : 'Entrar' }}</button>
+    <button type="button" class="secundario" (click)="alternar(form)">{{ cadastro() ? 'Já tenho uma conta' : 'Criar conta com e-mail' }}</button>
+  </fieldset></form>
+  <div class="divisor">ou continue com Google</div><div #botaoGoogle [class.bloqueado]="ocupado()"></div>
+  @if (googleAviso()) { <p class="ajuda" role="status">{{ googleAviso() }}</p> }
+</section></main>
