@@ -1,13 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { CarrinhoService } from './carrinho.service';
+import { formatarPreco } from './promocoes';
 
-@Component({ selector: 'app-carrinho', imports: [FormsModule, RouterLink], templateUrl: './carrinho.html', styleUrls: ['../app.scss', './loja.scss'] })
+@Component({ selector: 'app-carrinho', imports: [FormsModule, RouterLink], templateUrl: './carrinho.html', styleUrls: ['../app.scss', './loja.scss', './carrinho.scss'] })
 export class Carrinho {
   readonly carrinho = inject(CarrinhoService);
+  readonly moeda = formatarPreco;
+  percentual(valor: number) { return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(valor); }
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   readonly enviando = signal(false);
@@ -22,3 +25,4 @@ export class Carrinho {
     });
   }
 }
+

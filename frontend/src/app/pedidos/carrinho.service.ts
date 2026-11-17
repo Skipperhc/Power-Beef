@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
+import { calcularCarrinho } from './promocoes';
 
 export const PRODUTOS = [
   { tipo: 'brasileirinho', nome: 'Brasileirinho', descricao: 'A combinação de alho e cebola no seu Power Beef.', detalhe: 'Alho e cebola', icone: '🧄 🧅', peso: 30, proteina: 13 },
@@ -17,6 +18,7 @@ export class CarrinhoService {
   readonly atual = computed(() => this.carrinhos()[this.auth.usuario()?.id || '']);
   readonly itens = computed(() => this.atual()?.itens ?? []);
   readonly total = computed(() => this.itens().reduce((s, i) => s + i.quantidade, 0));
+  readonly precos = computed(() => calcularCarrinho(this.total()));
   constructor() {
     effect(() => {
       const id = this.auth.usuario()?.id;

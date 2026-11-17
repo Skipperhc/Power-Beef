@@ -18,6 +18,25 @@ describe('Compra de pacotes e pedidos', () => {
   });
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
+  it('recalcula o preço com sabores misturados, mudança de quantidade e remoção', async () => {
+    const fixture = TestBed.createComponent(Carrinho); fixture.detectChanges(); await fixture.whenStable();
+    const carrinho = TestBed.inject(CarrinhoService);
+    carrinho.adicionar('original', 2); carrinho.adicionar('picante', 2);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.total-compra dd').textContent).toContain('69,90');
+    expect(carrinho.precos().descontoCentavos).toBe(970);
+    carrinho.alterar('original', 8); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.total-compra dd').textContent).toContain('159,90');
+    carrinho.alterar('original', 23); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.total-compra dd').textContent).toContain('372,50');
+    expect(fixture.nativeElement.querySelector('.combos-aplicados').textContent).toContain('Preço de 25+ pacotes');
+    carrinho.remover('original'); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.total-compra dd').textContent).toContain('39,80');
+    carrinho.remover('picante'); fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.resumo-compra')).toBeNull();
+    expect(carrinho.precos().totalCentavos).toBe(0);
+  });
+
   it('administrador confirma a recusa e o pedido recusado fica sem ações', async () => {
     TestBed.inject(AuthService).usuario.set({ id: 'admin', nome: 'Admin', email: 'admin@example.com', perfil: 'administrador' });
     const fixture = TestBed.createComponent(Pedidos); const http = TestBed.inject(HttpTestingController);
