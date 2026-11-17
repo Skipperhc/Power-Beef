@@ -21,11 +21,11 @@ export async function alterarPedido(id, status, usuario, { Pedidos = Pedido, Mod
   if (usuario.perfil !== 'administrador') throw erro('Somente administradores alteram pedidos.', 403);
   return Pedidos.db.transaction(async session => {
     await travarEstoque(session, Controle);
-    await atenderProducao(session, Model, Pedidos);
+    if (status !== 'recusado') await atenderProducao(session, Model, Pedidos);
     const pedido = await Pedidos.findById(id).session(session);
     if (!pedido) throw erro('Pedido não encontrado.', 404);
     if (pedido.status === status) return pedido;
-    const permitidos = { pedido_enviado: ['aceito', 'em_producao'], em_producao: ['aceito'], aceito: ['entregue'], entregue: ['encerrado'], encerrado: [] };
+    const permitidos = { pedido_enviado: ['aceito', 'em_producao', 'recusado'], em_producao: ['aceito', 'recusado'], aceito: ['entregue', 'recusado'], entregue: ['encerrado'], encerrado: [], recusado: [] };
     if (!permitidos[pedido.status]?.includes(status)) throw conflito('Essa alteração de status não é permitida.');
     if (status === 'aceito' || status === 'em_producao') {
       // Pedidos já em produção têm prioridade sobre novos pedidos.
@@ -33,6 +33,13 @@ export async function alterarPedido(id, status, usuario, { Pedidos = Pedido, Mod
       if (status === 'aceito' && !completo) throw conflito('Estoque insuficiente. Marque o pedido como em produção para reservar o disponível.');
       mudarStatus(pedido, completo ? 'aceito' : 'em_producao', usuario.id);
     } else {
+      if (status === 'recusado') {
+        const reservados = pedido.itens.reduce((soma, item) => soma + item.reservada, 0);
+        const resultado = await Model.updateMany({ pedido: pedido._id, status: 'reservado' },
+          { $set: { status: 'em_estoque', pedido: null } }, { session, runValidators: true });
+        if (resultado.modifiedCount !== reservados) throw conflito('Reserva inconsistente. Confira os pacotes do pedido.');
+        for (const item of pedido.itens) item.reservada = 0;
+      }
       if (status === 'entregue') {
         const total = pedido.itens.reduce((soma, item) => soma + item.quantidade, 0);
         const resultado = await Model.updateMany({ pedido: pedido._id, status: 'reservado' },
@@ -41,7 +48,9 @@ export async function alterarPedido(id, status, usuario, { Pedidos = Pedido, Mod
       }
       mudarStatus(pedido, status, usuario.id);
     }
-    await pedido.save({ session }); return pedido;
+    await pedido.save({ session });
+    if (status === 'recusado') await atenderProducao(session, Model, Pedidos);
+    return pedido;
   });
 }
 export async function gerenciarPedidos(req, path, usuario, lerJson, Pedidos = Pedido) {

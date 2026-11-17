@@ -1,1 +1,2 @@
 .item-pedido { margin-bottom:12px; min-width:160px; } .acoes-pedido { display:flex; flex-direction:column; gap:8px; min-width:140px; } details { margin-top:12px; min-width:120px; } summary { cursor:pointer; color:#855019; } details p { font-size:12px; }
+.status.recusado { color:#8a3028; background:#fce9e5; } .acoes-pedido button.recusar { color:#8a3028; background:#fff5f2; border-color:#dfb5ab; } .acoes-pedido button.recusar:hover:not(:disabled) { background:#fce9e5; }

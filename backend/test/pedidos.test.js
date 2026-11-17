@@ -21,6 +21,54 @@ test('serviço de estoque aplica datas automáticas e impede alterar datas exist
   assert.equal(atualizado.validade, pacotes[0].validade);
 });
 
+test('recusa pedido enviado e registra autor; repetição não duplica histórico', async () => {
+  const f = fixture(); const pedido = await f.criar([{ tipo: 'original', quantidade: 2 }]);
+  const recusado = await f.alterar(pedido, 'recusado');
+  assert.equal(recusado.status, 'recusado');
+  assert.equal(recusado.historico.at(-1).autor, admin.id);
+  await f.alterar(pedido, 'recusado');
+  assert.equal(f.estado().pedidos[0].historico.filter(e => e.status === 'recusado').length, 1);
+  await assert.rejects(f.alterar(pedido, 'aceito'), e => e.status === 409);
+  await assert.rejects(alterarPedido(pedido._id, 'recusado', cliente, f.dependencias), e => e.status === 403);
+});
+
+test('recusa pedido aceito, libera reservas e atende produção pendente na mesma transação', async () => {
+  const f = fixture(); await f.estoque('original', 3);
+  const primeiro = await f.criar([{ tipo: 'original', quantidade: 3 }]); await f.alterar(primeiro, 'aceito');
+  const segundo = await f.criar([{ tipo: 'original', quantidade: 2 }]); await f.alterar(segundo, 'em_producao');
+  await f.alterar(primeiro, 'recusado');
+  assert.equal(f.estado().pedidos[0].status, 'recusado'); assert.equal(f.estado().pedidos[0].itens[0].reservada, 0);
+  assert.equal(f.estado().pedidos[1].status, 'aceito'); assert.equal(f.estado().pedidos[1].itens[0].reservada, 2);
+  assert.equal(f.estado().pacotes.filter(p => p.status === 'em_estoque' && p.pedido === null).length, 1);
+  assert.ok(f.estado().pacotes.every(p => p.pedido !== primeiro._id));
+  assert.ok(f.estado().pacotes.every(p => p.status !== 'vendido'));
+});
+
+test('recusa produção parcial sem aceitar automaticamente o pedido recusado', async () => {
+  const f = fixture(); await f.estoque('original', 1);
+  const pedido = await f.criar([{ tipo: 'original', quantidade: 3 }]); await f.alterar(pedido, 'em_producao');
+  await f.alterar(pedido, 'recusado');
+  assert.equal(f.estado().pedidos[0].itens[0].reservada, 0);
+  assert.equal(f.estado().pacotes[0].status, 'em_estoque');
+  await f.estoque('original', 3);
+  assert.equal(f.estado().pedidos[0].status, 'recusado');
+});
+
+test('não recusa pedido entregue e não desfaz vendas', async () => {
+  const f = fixture(); await f.estoque('original', 1);
+  const pedido = await f.criar([{ tipo: 'original', quantidade: 1 }]); await f.alterar(pedido, 'aceito'); await f.alterar(pedido, 'entregue');
+  await assert.rejects(f.alterar(pedido, 'recusado'), e => e.status === 409);
+  assert.equal(f.estado().pacotes[0].status, 'vendido');
+});
+
+test('recusas concorrentes liberam cada reserva apenas uma vez', async () => {
+  const f = fixture(); await f.estoque('original', 2);
+  const pedido = await f.criar([{ tipo: 'original', quantidade: 2 }]); await f.alterar(pedido, 'aceito');
+  await Promise.all([f.alterar(pedido, 'recusado'), f.alterar(pedido, 'recusado')]);
+  assert.equal(f.estado().pacotes.filter(p => p.status === 'em_estoque').length, 2);
+  assert.equal(f.estado().pedidos[0].historico.filter(e => e.status === 'recusado').length, 1);
+});
+
 function fixture() {
   let estado = { pacotes: [], pedidos: [], controles: {} }; let sequencia = 10; let fila = Promise.resolve();
   const copiar = obj => JSON.parse(JSON.stringify(obj));

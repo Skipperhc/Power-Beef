@@ -15,7 +15,7 @@ interface Pedido {
   itens: { tipo: string; quantidade: number; reservada: number }[];
   historico: { status: string; data: string }[];
 }
-export const STATUS_PEDIDO: Record<string, string> = { pedido_enviado: 'Pedido enviado', em_producao: 'Em produção', aceito: 'Aceito', entregue: 'Entregue', encerrado: 'Encerrado' };
+export const STATUS_PEDIDO: Record<string, string> = { pedido_enviado: 'Pedido enviado', em_producao: 'Em produção', aceito: 'Aceito', entregue: 'Entregue', encerrado: 'Encerrado', recusado: 'Recusado' };
 
 @Component({ selector: 'app-pedidos', imports: [DatePipe, Paginador, FiltroColunaComponent], templateUrl: './pedidos.html', styleUrls: ['../app.scss', './pedidos.scss'] })
 export class Pedidos {
@@ -35,7 +35,7 @@ export class Pedidos {
   constructor() { this.carregar(); }
   nome(tipo: string) { return PRODUTOS.find(p => p.tipo === tipo)?.nome || tipo; }
   opcoes(pedido: Pedido) {
-    return ({ pedido_enviado: ['aceito', 'em_producao'], em_producao: ['aceito'], aceito: ['entregue'], entregue: ['encerrado'], encerrado: [] } as Record<string, string[]>)[pedido.status] || [];
+    return ({ pedido_enviado: ['aceito', 'em_producao', 'recusado'], em_producao: ['aceito', 'recusado'], aceito: ['entregue', 'recusado'], entregue: ['encerrado'], encerrado: [], recusado: [] } as Record<string, string[]>)[pedido.status] || [];
   }
   filtrar(campo: string, filtro: FiltroColuna) { this.filtros.update(f => ({ ...f, [campo]: filtro })); this.paginacao.primeira(); }
   limpar() { this.filtros.set({}); this.paginacao.primeira(); }
@@ -47,7 +47,10 @@ export class Pedidos {
   }
   alterar(pedido: Pedido, status: string) {
     if (this.alterando() || !this.admin()) return;
-    if (!window.confirm(`Alterar pedido para ${this.rotulos[status]}? ${status === 'aceito' || status === 'em_producao' ? 'Os pacotes disponíveis serão reservados no estoque.' : ''}`)) return;
+    const confirmacao = status === 'recusado'
+      ? 'Recusar este pedido? Os pacotes reservados serão liberados e poderão atender outros pedidos em produção. O pedido não poderá ser reaberto.'
+      : `Alterar pedido para ${this.rotulos[status]}? ${status === 'aceito' || status === 'em_producao' ? 'Os pacotes disponíveis serão reservados no estoque.' : ''}`;
+    if (!window.confirm(confirmacao)) return;
     this.alterando.set(pedido._id); this.erro.set(''); this.aviso.set('');
     this.http.put<Pedido>(`/api/pedidos/${pedido._id}`, { status }).pipe(finalize(() => this.alterando.set(''))).subscribe({
       next: atualizado => { this.aviso.set(`Pedido atualizado para ${this.rotulos[atualizado.status]}.`); this.carregar(); },

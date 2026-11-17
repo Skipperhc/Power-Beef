@@ -12,7 +12,7 @@ const schema = new mongoose.Schema({
   clienteEmail: { type: String, required: true },
   chaveEnvio: { type: String, required: true },
   itens: { type: [itemSchema], required: true },
-  status: { type: String, enum: ['pedido_enviado', 'em_producao', 'aceito', 'entregue', 'encerrado'], default: 'pedido_enviado', index: true },
+  status: { type: String, enum: ['pedido_enviado', 'em_producao', 'aceito', 'entregue', 'encerrado', 'recusado'], default: 'pedido_enviado', index: true },
   historico: [{ status: String, data: { type: Date, default: Date.now }, autor: String, _id: false }],
 }, { timestamps: true, collection: 'pedidos', optimisticConcurrency: true });
 schema.index({ cliente: 1, chaveEnvio: 1 }, { unique: true });
