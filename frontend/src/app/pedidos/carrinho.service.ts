@@ -2,10 +2,10 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
 export const PRODUTOS = [
-  { tipo: 'brasileirinho', nome: 'Brasileirinho', descricao: 'Conheça o Brasileirinho da Power Beef.', detalhe: 'Um dos nossos quatro sabores.' },
-  { tipo: 'picante', nome: 'Picante', descricao: 'Para quem gosta de um toque picante.', detalhe: 'Escolha a intensidade do seu momento.' },
-  { tipo: 'churrasco', nome: 'Churrasco', descricao: 'O sabor Churrasco em pacotes Power Beef.', detalhe: 'Seu próximo sabor favorito.' },
-  { tipo: 'original', nome: 'Original', descricao: 'O sabor original do Power Beef.', detalhe: 'Conheça a nossa versão Original.' },
+  { tipo: 'brasileirinho', nome: 'Brasileirinho', descricao: 'A combinação de alho e cebola no seu Power Beef.', detalhe: 'Alho e cebola', icone: '🧄 🧅', peso: 30, proteina: 13 },
+  { tipo: 'picante', nome: 'Picante', descricao: 'Um toque de pimenta com picância suave.', detalhe: 'Picância suave', icone: '🌶️', peso: 30, proteina: 13 },
+  { tipo: 'churrasco', nome: 'Churrasco', descricao: 'O sabor defumado para quem gosta de churrasco.', detalhe: 'Defumado', icone: '🔥', peso: 30, proteina: 13 },
+  { tipo: 'original', nome: 'Original', descricao: 'O clássico tempero de sal e vinagre.', detalhe: 'Sal e vinagre', icone: '🧂 🍶', peso: 30, proteina: 13 },
 ];
 export interface ItemCarrinho { tipo: string; quantidade: number; }
 interface Carrinho { chaveEnvio: string; itens: ItemCarrinho[]; }

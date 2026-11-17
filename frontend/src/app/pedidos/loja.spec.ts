@@ -37,6 +37,12 @@ describe('Compra de pacotes e pedidos', () => {
   it('apresenta quatro produtos, soma quantidades e mantém carrinhos separados por conta', async () => {
     const fixture = TestBed.createComponent(Catalogo); fixture.detectChanges(); await fixture.whenStable();
     expect(fixture.nativeElement.querySelectorAll('.produto').length).toBe(4);
+    expect(fixture.nativeElement.querySelectorAll('.oferta').length).toBe(4);
+    expect(fixture.nativeElement.querySelector('.promocoes').textContent).toContain('12,2%');
+    expect(fixture.nativeElement.querySelector('.promocoes').textContent).toContain('19,6%');
+    expect(fixture.nativeElement.querySelector('.promocoes').textContent).toContain('25,1%');
+    expect(fixture.nativeElement.querySelector('[data-sabor="original"]').textContent).toContain('Sal e vinagre');
+    expect(fixture.nativeElement.querySelector('[data-sabor="picante"]').textContent).toContain('Picância suave');
     const app = fixture.componentInstance; app.quantidades['original'] = 10; app.adicionar('original'); app.adicionar('original');
     expect(app.carrinho.total()).toBe(20);
     expect(app.carrinho.itens().length).toBe(1);

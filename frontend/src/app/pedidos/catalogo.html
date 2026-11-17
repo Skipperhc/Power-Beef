@@ -1,7 +1,13 @@
 <main><section class="abertura"><div><p class="eyebrow">CONHEÇA A POWER BEEF</p><h1>Quatro sabores.<br>Qual vai ser o seu?</h1><p>Escolha seus pacotes favoritos e envie seu pedido.</p></div><div class="links-loja"><a routerLink="/carrinho" class="link-loja">Carrinho · {{ carrinho.total() }} pacotes</a><a routerLink="/pedidos">Meus pedidos →</a></div></section>
   @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> } @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> }
+  <section class="promocoes" aria-labelledby="promocoes-titulo"><div class="promocoes-cabecalho"><div><p class="eyebrow">PROMOÇÃO ESPECIAL</p><h2 id="promocoes-titulo">Mais pacotes, mais economia.</h2></div><p>Escolha seu combo e experimente os sabores Power Beef.</p></div>
+    <div class="ofertas">@for (oferta of promocoes; track oferta.quantidade) {
+      <article class="oferta" [class.oferta-destaque]="oferta.quantidade === 4"><h3>{{ oferta.titulo }}</h3><p class="oferta-preco">{{ oferta.preco }}</p><p class="oferta-unidade">{{ oferta.porUnidade ? 'cada · a partir de 25 unidades' : oferta.quantidade === 1 ? 'por unidade' : 'o combo completo' }}</p><span class="oferta-desconto">{{ oferta.desconto ? oferta.percentual + '% de desconto' : '0% · preço de referência' }}</span></article>
+    }</div><p class="ofertas-regra">Descontos calculados sobre R$ 19,90 por pacote, arredondados para uma casa decimal.</p>
+  </section>
+  <div class="sabores-titulo"><p class="eyebrow">ENCONTRE O SEU FAVORITO</p><h2>Conheça os quatro sabores</h2></div>
   <div class="produtos">@for (produto of produtos; track produto.tipo) {
-    <article class="painel produto" [attr.data-sabor]="produto.tipo"><div class="embalagem" aria-hidden="true"><span>POWER<br><strong>BEEF</strong></span><small>{{ produto.nome }}</small></div><p class="eyebrow">{{ produto.detalhe }}</p><h2>{{ produto.nome }}</h2><p>{{ produto.descricao }}</p>
+    <article class="painel produto" [attr.data-sabor]="produto.tipo"><div class="embalagem" aria-hidden="true"><span>POWER<br><strong>BEEF</strong></span><span class="sabor-icone">{{ produto.icone }}</span><small>{{ produto.nome }}</small></div><p class="eyebrow">{{ produto.detalhe }}</p><h2>{{ produto.nome }}</h2><div class="produto-detalhes"><p>{{ produto.descricao }}</p><dl class="produto-nutricao"><div><dt>Peso líquido</dt><dd>{{ produto.peso }} g</dd></div><div><dt>Proteína</dt><dd>{{ produto.proteina }} g</dd></div></dl></div>
       <label [for]="'qtd-' + produto.tipo">Quantidade de pacotes</label><input [id]="'qtd-' + produto.tipo" type="number" [(ngModel)]="quantidades[produto.tipo]" min="1" max="1000" step="1"><button class="primario" (click)="adicionar(produto.tipo)">Adicionar ao carrinho</button>
     </article>
   }</div><p class="ajuda">O envio do pedido não confirma disponibilidade. Um administrador vai aceitar o pedido ou encaminhá-lo para produção.</p>

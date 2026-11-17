@@ -1,6 +1,29 @@
-.links-loja { display:flex; flex-direction:column; gap:16px; } .link-loja { background:#9d4516; color:white; padding:14px 18px; border-radius:7px; text-decoration:none; font-weight:600; white-space:nowrap; }
+﻿.links-loja { display:flex; flex-direction:column; gap:16px; } .link-loja { background:#9d4516; color:white; padding:14px 18px; border-radius:7px; text-decoration:none; font-weight:600; white-space:nowrap; }
 .produtos { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; } .produto p { line-height:1.6; } .produto .eyebrow { font-size:10px; letter-spacing:1px; min-height:32px; } .produto button { width:100%; margin-top:16px; }
 .embalagem { min-height:190px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; border-radius:10px; background:linear-gradient(140deg,#294d37,#10291c); color:white; padding:24px; margin-bottom:24px; } .embalagem span { font-size:25px; letter-spacing:3px; font-weight:bold; line-height:1.1; } .embalagem strong { color:#ffcf76; } .embalagem small { text-transform:uppercase; letter-spacing:2px; font-size:10px; }
 [data-sabor='picante'] .embalagem { background:linear-gradient(140deg,#98362c,#3b1714); } [data-sabor='churrasco'] .embalagem { background:linear-gradient(140deg,#88603b,#34271b); } [data-sabor='original'] .embalagem { background:linear-gradient(140deg,#b18a35,#4c3914); }
 .item-carrinho { display:flex; align-items:center; gap:20px; padding:20px 0; border-bottom:1px solid #e2ddd4; flex-wrap:wrap; } .item-carrinho h2 { margin-right:auto; } .item-carrinho label { margin:0; max-width:110px; } .item-carrinho input { margin-top:6px; } .voltar-loja { display:inline-block; margin:20px; color:#855019; }
 @media(max-width:1100px) { .produtos { grid-template-columns:repeat(2,minmax(0,1fr)); } } @media(max-width:550px) { .produtos { grid-template-columns:1fr; } }
+.produto { display:grid; grid-template-rows:subgrid; grid-row:span 7; row-gap:0; align-items:start; }
+.produto > p:not(.eyebrow) { min-block-size:3.2em; }
+.promocoes { margin:0 0 36px; padding:28px; border-radius:16px; background:linear-gradient(125deg,#2d231b,#171512); color:#fff3df; border:1px solid #604626; }
+.promocoes-cabecalho { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-bottom:22px; }
+.promocoes-cabecalho .eyebrow { color:#edbb68; margin:0 0 8px; font-size:10px; }
+.promocoes-cabecalho h2 { margin:0; font-size:26px; }
+.promocoes-cabecalho>p { max-width:270px; font-size:13px; line-height:1.6; color:#c8bba7; margin:0; }
+.ofertas { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.oferta { padding:22px 18px; border:1px solid #61513a; border-radius:10px; background:#ffffff05; display:flex; flex-direction:column; align-items:flex-start; }
+.oferta-destaque { border-color:#e5b362; background:#cf943012; }
+.oferta h3 { font-size:15px; margin:0 0 18px; font-weight:500; color:#f3e7d4; }
+.oferta-preco { font-size:clamp(22px,2.4vw,32px); font-weight:800; letter-spacing:-1px; color:#ffd58d; margin:0 0 6px; white-space:nowrap; }
+.oferta-unidade { font-size:11px; color:#bcae9a; line-height:1.5; margin:0 0 18px; min-height:33px; }
+.oferta-desconto { margin-top:auto; display:inline-block; font-size:11px; font-weight:600; padding:7px 9px; border-radius:6px; background:#efd49d; color:#3d2c13; }
+.ofertas-regra { font-size:11px; color:#b6a78f; line-height:1.6; margin:18px 0 0; }
+.sabores-titulo { margin-bottom:22px; }.sabores-titulo .eyebrow { font-size:10px; margin-bottom:7px; }
+.embalagem .sabor-icone { font-size:37px; line-height:1.2; letter-spacing:0; white-space:nowrap; font-weight:normal; }
+.produto-detalhes>p { min-block-size:3.2em; line-height:1.6; margin:0 0 16px; }
+.produto-nutricao { display:flex; gap:18px; padding:13px 0; margin:0; border-top:1px solid #eee6db; border-bottom:1px solid #eee6db; }
+.produto-nutricao div { flex:1; }.produto-nutricao dt { font-size:10px; color:#807263; }.produto-nutricao dd { margin:5px 0 0; font-size:15px; font-weight:700; color:#5b422b; }
+@media(max-width:1100px) { .ofertas { grid-template-columns:repeat(2,minmax(0,1fr)); }.oferta-preco { font-size:30px; } }
+@media(max-width:550px) { .promocoes { padding:20px 16px; }.promocoes-cabecalho { display:block; }.promocoes-cabecalho h2 { font-size:23px; }.promocoes-cabecalho>p { margin-top:12px; }.ofertas { gap:10px; }.oferta { padding:16px 12px; }.oferta h3 { font-size:14px; margin-bottom:14px; }.oferta-preco { font-size:24px; }.oferta-desconto { font-size:10px; padding:6px; }.oferta-unidade { font-size:10px; } }
+
