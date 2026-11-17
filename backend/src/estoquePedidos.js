@@ -1,6 +1,8 @@
 import { Pacote } from './models/Pacote.js';
 import { Pedido } from './models/Pedido.js';
 import { ControleEstoque } from './models/ControleEstoque.js';
+import { datasPacote } from './datasPacote.js';
+import { gerarLote } from './lotes.js';
 
 export const conflito = mensagem => Object.assign(new Error(mensagem), { status: 409 });
 export async function travarEstoque(session, Controle = ControleEstoque) {
@@ -31,15 +33,19 @@ export async function atenderProducao(session, Model = Pacote, Pedidos = Pedido)
   }
 }
 export async function cadastrarPacotes(dados, quantidade, Model = Pacote, Pedidos = Pedido, Controle = ControleEstoque) {
+  const cadastro = { ...dados, ...datasPacote() };
   return Model.db.transaction(async session => {
     await travarEstoque(session, Controle);
-    const pacotes = await Model.insertMany(Array.from({ length: quantidade }, () => ({ ...dados })), { session });
+    const lote = await gerarLote(session, Model, Controle, Number(cadastro.dataFabricacao.slice(0, 4)));
+    const pacotes = await Model.insertMany(Array.from({ length: quantidade }, () => ({ ...cadastro, lote })), { session });
     await atenderProducao(session, Model, Pedidos);
     // A resposta já reflete pacotes eventualmente reservados para produção.
     return Model.find({ _id: { $in: pacotes.map(p => p._id) } }).session(session);
   });
 }
 export async function modificarPacote(id, dados, Model = Pacote, Pedidos = Pedido, Controle = ControleEstoque) {
+  if (dados && 'lote' in dados) throw Object.assign(new Error('O lote é automático e não pode ser alterado após o cadastro.'), { status: 400 });
+  if (dados && ('dataFabricacao' in dados || 'validade' in dados)) throw Object.assign(new Error('As datas são automáticas e não podem ser alteradas após o cadastro.'), { status: 400 });
   return Model.db.transaction(async session => {
     await travarEstoque(session, Controle);
     const pacote = await Model.findById(id).session(session);

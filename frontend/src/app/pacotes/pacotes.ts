@@ -8,6 +8,7 @@ import { FiltroColunaComponent } from '../shared/filtro-coluna';
 import { filtrar, valoresUnicos, Filtros, FiltroColuna } from '../shared/filtros';
 import { Paginacao } from '../shared/paginacao';
 import { Paginador } from '../shared/paginador';
+import { datasPacote } from './datas-pacote';
 
 interface DadosPacote {
   tipo: string; dataFabricacao: string; validade: string;
@@ -39,7 +40,8 @@ export class Pacotes {
   readonly estoque = computed(() => this.pacotes().filter(p => p.status === 'em_estoque').length);
   dados = this.vazio();
   quantidade = 1;
-  venda = { tipo: '', quantidade: 1, dataVenda: '' };
+  readonly datasPadrao = datasPacote;
+  venda = { tipo: '', quantidade: 1, dataVenda: datasPacote().dataFabricacao };
   disponivelVenda() { return this.pacotes().filter(p => p.tipo === this.venda.tipo && p.status === 'em_estoque').length; }
   vendaValida() { return Number.isInteger(this.venda.quantidade) && this.venda.quantidade >= 1 && this.venda.quantidade <= 1000; }
   registrarVenda(form: NgForm) {
@@ -51,13 +53,13 @@ export class Pacotes {
           const ids = new Set(resultado.ids);
           this.pacotes.update(lista => lista.map(p => ids.has(p._id) ? { ...p, status: 'vendido', dataVenda: resultado.dataVenda } : p));
           this.aviso.set(`${resultado.quantidade} pacote(s) marcado(s) como vendido(s).`);
-          this.venda = { tipo: '', quantidade: 1, dataVenda: '' };
-          form.resetForm({ tipoVenda: '', quantidadeVenda: 1, dataVenda: '' });
+          this.venda = { tipo: '', quantidade: 1, dataVenda: datasPacote().dataFabricacao };
+          form.resetForm({ tipoVenda: '', quantidadeVenda: 1, dataVenda: this.venda.dataVenda });
         }, error: e => this.falha(e),
       });
   }
   constructor() { this.carregar(); }
-  private vazio(): DadosPacote { return { tipo: '', dataFabricacao: '', validade: '', lote: '', status: 'em_estoque', observacoes: '' }; }
+  private vazio(): DadosPacote { return { tipo: '', ...datasPacote(), lote: '', status: 'em_estoque', observacoes: '' }; }
   carregar() {
     this.carregando.set(true); this.erro.set('');
     this.http.get<Pacote[]>('/api/pacotes').pipe(finalize(() => this.carregando.set(false))).subscribe({
@@ -68,13 +70,14 @@ export class Pacotes {
     if (form.invalid || this.datasInvalidas() || this.ocupado() || (!this.editarId() && !this.quantidadeValida())) return;
     this.ocupado.set(true); this.erro.set(''); this.aviso.set('');
     const id = this.editarId();
+    const { dataFabricacao, validade, lote, ...conteudo } = this.dados;
     const requisicao = id
-      ? this.http.put<Pacote>(`/api/pacotes/${id}`, this.dados).pipe(map(pacote => [pacote]))
-      : this.http.post<{ quantidade: number; pacotes: Pacote[] }>('/api/pacotes', { ...this.dados, quantidade: this.quantidade }).pipe(map(resposta => resposta.pacotes));
+      ? this.http.put<Pacote>(`/api/pacotes/${id}`, conteudo).pipe(map(pacote => [pacote]))
+      : this.http.post<{ quantidade: number; pacotes: Pacote[] }>('/api/pacotes', { ...conteudo, quantidade: this.quantidade }).pipe(map(resposta => resposta.pacotes));
     requisicao.pipe(finalize(() => this.ocupado.set(false))).subscribe({
       next: pacotes => {
         this.pacotes.update(lista => id ? lista.map(p => p._id === id ? pacotes[0] : p) : [...pacotes, ...lista]);
-        this.cancelar(form); this.aviso.set(id ? 'Pacote atualizado.' : `${pacotes.length} pacote(s) adicionado(s) ao lote.`);
+        this.cancelar(form); this.aviso.set(id ? 'Pacote atualizado.' : `${pacotes.length} pacote(s) adicionado(s) ao lote ${pacotes[0].lote}.`);
         if (id) this.carregar();
       }, error: e => this.falha(e),
     });

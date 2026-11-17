@@ -2,19 +2,34 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validarPedido, gerenciarPedidos, alterarPedido } from '../src/pedidos.js';
 import { cadastrarPacotes, modificarPacote } from '../src/estoquePedidos.js';
+import { datasPacote } from '../src/datasPacote.js';
+import { gerarLote } from '../src/lotes.js';
 
 const admin = { id: '000000000000000000000001', perfil: 'administrador', nome: 'Admin', email: 'a@example.com' };
 const cliente = { id: '000000000000000000000002', perfil: 'cliente', nome: 'Cliente', email: 'c@example.com' };
 const chave = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 
+test('serviço de estoque aplica datas automáticas e impede alterar datas existentes', async () => {
+  const f = fixture(); const pacotes = await f.estoque('original', 2);
+  for (const pacote of pacotes) {
+    assert.equal(pacote.dataFabricacao, datasPacote().dataFabricacao);
+    assert.equal(pacote.validade, datasPacote().validade);
+  }
+  await assert.rejects(modificarPacote(pacotes[0]._id, { validade: '2030-01-01' }, f.Model, f.Pedidos, f.Controle), e => e.status === 400);
+  const atualizado = await modificarPacote(pacotes[0]._id, { observacoes: 'Atualizado' }, f.Model, f.Pedidos, f.Controle);
+  assert.equal(atualizado.dataFabricacao, pacotes[0].dataFabricacao);
+  assert.equal(atualizado.validade, pacotes[0].validade);
+});
+
 function fixture() {
-  let estado = { pacotes: [], pedidos: [] }; let sequencia = 10; let fila = Promise.resolve();
+  let estado = { pacotes: [], pedidos: [], controles: {} }; let sequencia = 10; let fila = Promise.resolve();
   const copiar = obj => JSON.parse(JSON.stringify(obj));
   const id = () => (++sequencia).toString(16).padStart(24, '0');
   const matches = (obj, filtro) => Object.entries(filtro).every(([campo, valor]) => {
     if (valor && typeof valor === 'object') {
       if ('$in' in valor) return valor.$in.includes(obj[campo]);
       if ('$ne' in valor) return obj[campo] !== valor.$ne;
+      if ('$regex' in valor) return new RegExp(valor.$regex).test(obj[campo] || '');
     }
     return valor === null ? obj[campo] == null : obj[campo] === valor;
   });
@@ -60,7 +75,18 @@ function fixture() {
     };
     return Model;
   }
-  const Model = model('pacotes'); const Pedidos = model('pedidos'); const Controle = { updateOne: async () => {} };
+  const Model = model('pacotes'); const Pedidos = model('pedidos'); const Controle = {
+    async updateOne({ _id }, update) {
+      const novo = !estado.controles[_id]; const doc = estado.controles[_id] ??= { _id };
+      if (novo) Object.assign(doc, update.$setOnInsert);
+      for (const [key, value] of Object.entries(update.$inc || {})) doc[key] = (doc[key] || 0) + value;
+      for (const [key, value] of Object.entries(update.$max || {})) doc[key] = Math.max(doc[key] || 0, value);
+    },
+    async findOneAndUpdate({ _id, ultimoLote }, update) {
+      const doc = estado.controles[_id]; if (!doc || doc.ultimoLote >= ultimoLote.$lt) return null;
+      doc.ultimoLote += update.$inc.ultimoLote; return copiar(doc);
+    },
+  };
   const dependencias = { Model, Pedidos, Controle };
   let numero = 0;
   const criar = async (itens, usuario = cliente, chaveEnvio = chave(++numero)) => (await gerenciarPedidos({ method: 'POST' }, '/api/pedidos', usuario, async () => ({ itens, chaveEnvio }), Pedidos)).body;
@@ -68,6 +94,34 @@ function fixture() {
   const alterar = (pedido, status) => alterarPedido(pedido._id, status, admin, dependencias);
   return { criar, estoque, alterar, dependencias, Model, Pedidos, Controle, estado: () => estado };
 }
+
+test('lote único por cadastro, sequência concorrente e sem reutilização após exclusão', async () => {
+  const f = fixture(), ano = Number(datasPacote().dataFabricacao.slice(0, 4));
+  const [a, b] = await Promise.all([f.estoque('original', 3), f.estoque('picante', 2)]);
+  assert.ok(a.every(p => p.lote === `001-${ano}`)); assert.ok(b.every(p => p.lote === `002-${ano}`));
+  for (const pacote of [...a, ...b]) await modificarPacote(pacote._id, null, f.Model, f.Pedidos, f.Controle);
+  const novo = await f.estoque('original', 1); assert.equal(novo[0].lote, `003-${ano}`);
+  await assert.rejects(modificarPacote(novo[0]._id, { lote: 'MANUAL' }, f.Model, f.Pedidos, f.Controle), e => e.status === 400);
+});
+
+test('continua códigos existentes, reinicia por ano e respeita o limite de três dígitos', async () => {
+  const f = fixture(), ano = Number(datasPacote().dataFabricacao.slice(0, 4));
+  await f.Model.create({ tipo: 'original', lote: `009-${ano}` });
+  assert.equal((await f.estoque('original', 1))[0].lote, `010-${ano}`);
+  assert.equal(await f.Model.db.transaction(session => gerarLote(session, f.Model, f.Controle, ano + 1)), `001-${ano + 1}`);
+  f.estado().controles[`lotes:${ano}`].ultimoLote = 998;
+  assert.equal((await f.estoque('original', 1))[0].lote, `999-${ano}`);
+  await assert.rejects(f.estoque('original', 1), e => e.status === 409);
+});
+
+test('falha ao cadastrar desfaz também o avanço do contador do lote', async () => {
+  const f = fixture(), ano = Number(datasPacote().dataFabricacao.slice(0, 4));
+  await f.estoque('original', 1); const inserir = f.Model.insertMany;
+  f.Model.insertMany = async () => { throw new Error('Falha simulada'); };
+  await assert.rejects(f.estoque('original', 2), /Falha simulada/);
+  f.Model.insertMany = inserir;
+  assert.equal((await f.estoque('original', 1))[0].lote, `002-${ano}`);
+});
 
 test('aceita exatamente a quantidade pedida e entrega registra a venda uma única vez', async () => {
   const f = fixture(); await f.estoque('brasileirinho', 12);

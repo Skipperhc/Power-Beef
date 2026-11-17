@@ -3,6 +3,7 @@ import { Pacote } from './models/Pacote.js';
 import { mongoConnection } from './database/MongoConnection.js';
 import { registrarVenda } from './registrarVenda.js';
 import { cadastrarPacotes, modificarPacote } from './estoquePedidos.js';
+import { datasPacote } from './datasPacote.js';
 
 const campos = ['tipo', 'dataFabricacao', 'validade', 'lote', 'status', 'observacoes'];
 function enviar(res, status, dados) {
@@ -60,9 +61,9 @@ export function criarApp(Model = Pacote, database = mongoConnection, cadastrar =
       if (!database.isConnected) return enviar(res, 503, { message: 'Banco indisponível. Tente novamente.' });
       if (!id && req.method === 'GET') return enviar(res, 200, await Model.find().sort({ createdAt: -1 }));
       if (!id && req.method === 'POST') {
-        const { quantidade, ...dados } = await lerDados(req, true);
+        const { quantidade, lote, ...dados } = await lerDados(req, true);
         // Preserva a resposta do cadastro unitário para clientes existentes.
-        const pacotes = await cadastrar(dados, quantidade ?? 1, Model);
+        const pacotes = await cadastrar({ ...dados, ...datasPacote() }, quantidade ?? 1, Model);
         if (quantidade === undefined) return enviar(res, 201, pacotes[0]);
         return enviar(res, 201, { quantidade: pacotes.length, pacotes });
       }
@@ -70,7 +71,10 @@ export function criarApp(Model = Pacote, database = mongoConnection, cadastrar =
         const pacote = await Model.findById(id);
         return enviar(res, pacote ? 200 : 404, pacote || { message: 'Pacote não encontrado.' });
       }
-      const pacote = await modificar(id, req.method === 'PUT' ? await lerDados(req) : null, Model);
+      const alteracoes = req.method === 'PUT' ? await lerDados(req) : null;
+      if (alteracoes && 'lote' in alteracoes) return enviar(res, 400, { message: 'O lote é automático e não pode ser alterado após o cadastro.' });
+      if (alteracoes && ('dataFabricacao' in alteracoes || 'validade' in alteracoes)) return enviar(res, 400, { message: 'As datas são automáticas e não podem ser alteradas após o cadastro.' });
+      const pacote = await modificar(id, alteracoes, Model);
       if (req.method === 'PUT') return enviar(res, 200, pacote);
       return enviar(res, 204);
     } catch (error) {

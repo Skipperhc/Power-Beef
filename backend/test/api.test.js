@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { criarApp } from '../src/app.js';
 import { Pacote } from '../src/models/Pacote.js';
+import { datasPacote } from '../src/datasPacote.js';
 
 test('CRUD HTTP, validações e pacote inexistente', async () => {
   const registros = new Map();
@@ -25,9 +26,12 @@ test('CRUD HTTP, validações e pacote inexistente', async () => {
       return pacote;
     },
   };
+  let sequenciaLote = 0;
   const cadastrar = async (dados, quantidade) => {
+    dados = { ...dados, lote: `${String(sequenciaLote + 1).padStart(3, '0')}-${datasPacote().dataFabricacao.slice(0, 4)}` };
     const pacotes = [];
     for (let i = 0; i < quantidade; i++) await new Pacote(dados).validate();
+    sequenciaLote++;
     for (let i = 0; i < quantidade; i++) pacotes.push(await Model.create(dados));
     return pacotes;
   };
@@ -51,17 +55,21 @@ test('CRUD HTTP, validações e pacote inexistente', async () => {
     const criado = await request('', 'POST', { tipo: 'original', lote: 'TESTE', dataFabricacao: '2026-11-01', validade: '2027-05-01' });
     assert.equal(criado.status, 201);
     const pacote = await criado.json();
+    assert.equal(pacote.dataFabricacao.slice(0, 10), datasPacote().dataFabricacao);
+    assert.equal(pacote.validade.slice(0, 10), datasPacote().validade);
+    assert.equal(pacote.lote, `001-${datasPacote().dataFabricacao.slice(0, 4)}`);
     assert.equal((await (await request()).json()).length, 1);
     assert.equal((await request(`/${pacote._id}`)).status, 200);
     const atualizado = await request(`/${pacote._id}`, 'PUT', { tipo: 'picante' });
     assert.equal(atualizado.status, 200);
     assert.equal((await atualizado.json()).tipo, 'picante');
     assert.equal((await request(`/${pacote._id}`, 'PUT', { validade: '2020-01-01' })).status, 400);
+    assert.equal((await request(`/${pacote._id}`, 'PUT', { lote: 'MANUAL' })).status, 400);
     assert.equal((await request('/invalido')).status, 400);
     assert.equal((await request(`/${pacote._id}`, 'DELETE')).status, 204);
     assert.equal((await request(`/${pacote._id}`)).status, 404);
     assert.equal((await request(`/${pacote._id}`, 'DELETE')).status, 404);
-    const dadosLote = { tipo: 'churrasco', lote: 'LOTE-20', dataFabricacao: '2026-11-01', validade: '2027-05-01' };
+    const dadosLote = { tipo: 'churrasco' };
     for (const quantidade of [0, -1, 1.5, 1001, '2', null]) {
       assert.equal((await request('', 'POST', { ...dadosLote, quantidade })).status, 400);
     }
@@ -73,7 +81,8 @@ test('CRUD HTTP, validações e pacote inexistente', async () => {
     assert.equal(resultado.quantidade, 20);
     assert.equal(resultado.pacotes.length, 20);
     assert.equal(new Set(resultado.pacotes.map(p => p._id)).size, 20);
-    assert.ok(resultado.pacotes.every(p => p.lote === 'LOTE-20' && p.tipo === 'churrasco' && p.status === 'em_estoque'));
+    assert.ok(resultado.pacotes.every(p => p.lote === `002-${datasPacote().dataFabricacao.slice(0, 4)}` && p.tipo === 'churrasco' && p.status === 'em_estoque'));
+    assert.ok(resultado.pacotes.every(p => p.dataFabricacao.slice(0, 10) === datasPacote().dataFabricacao && p.validade.slice(0, 10) === datasPacote().validade));
     assert.equal((await (await request()).json()).length, 20);
     assert.equal((await request(`/${resultado.pacotes[0]._id}`, 'PUT', { quantidade: 2 })).status, 400);
   } finally { await new Promise(resolve => server.close(resolve)); }

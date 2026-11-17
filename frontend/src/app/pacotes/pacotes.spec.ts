@@ -4,14 +4,39 @@ import { NgForm } from '@angular/forms';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { AdicionarPacotes } from './adicionar-pacotes';
+import { datasPacote } from './datas-pacote';
+import { AdicionarVenda } from './adicionar-venda';
 
 describe('Cadastro por quantidade', () => {
+  it('preenche a venda com hoje e mantém a data ao preparar a próxima venda', async () => {
+    TestBed.configureTestingModule({ imports: [AdicionarVenda], providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const fixture = TestBed.createComponent(AdicionarVenda); const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/pacotes').flush([{ _id: '1', tipo: 'original', status: 'em_estoque' }]);
+    fixture.detectChanges(); await fixture.whenStable();
+    const hoje = datasPacote().dataFabricacao;
+    expect(fixture.nativeElement.querySelector('#venda-data').value).toBe(hoje);
+    const app = fixture.componentInstance; app.venda.tipo = 'original';
+    fixture.detectChanges(); await fixture.whenStable();
+    const form = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
+    app.registrarVenda(form); const req = http.expectOne('/api/pacotes/venda');
+    expect(req.request.body.dataVenda).toBe(hoje);
+    req.flush({ quantidade: 1, dataVenda: hoje, ids: ['1'] });
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(app.venda.tipo).toBe(''); expect(fixture.nativeElement.querySelector('#venda-data').value).toBe(hoje);
+    http.verify();
+  });
   it('envia a quantidade e soma as unidades retornadas no estoque', async () => {
     TestBed.configureTestingModule({ imports: [AdicionarPacotes], providers: [provideHttpClient(), provideHttpClientTesting()] });
     const fixture = TestBed.createComponent(AdicionarPacotes);
     const http = TestBed.inject(HttpTestingController);
     http.expectOne('/api/pacotes').flush([]);
     fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('#fabricacao').value).toBe(datasPacote().dataFabricacao);
+    expect(fixture.nativeElement.querySelector('#validade').value).toBe(datasPacote().validade);
+    expect(fixture.nativeElement.querySelector('#fabricacao').readOnly).toBe(true);
+    expect(fixture.nativeElement.querySelector('#validade').readOnly).toBe(true);
+    expect(fixture.nativeElement.querySelector('#lote').readOnly).toBe(true);
+    expect(fixture.nativeElement.querySelector('#lote').value).toBe('Gerado ao salvar');
     const app = fixture.componentInstance;
     app.dados = { tipo: 'original', lote: 'LOTE-2', dataFabricacao: '2026-11-01', validade: '2027-05-01', status: 'em_estoque', observacoes: '' };
     app.quantidade = 2;
@@ -21,10 +46,15 @@ describe('Cadastro por quantidade', () => {
     const req = http.expectOne('/api/pacotes');
     expect(req.request.method).toBe('POST');
     expect(req.request.body.quantidade).toBe(2);
-    req.flush({ quantidade: 2, pacotes: [{ ...app.dados, _id: '1' }, { ...app.dados, _id: '2' }] });
+    expect(req.request.body.dataFabricacao).toBeUndefined();
+    expect(req.request.body.validade).toBeUndefined();
+    expect(req.request.body.lote).toBeUndefined();
+    const lote = `001-${datasPacote().dataFabricacao.slice(0, 4)}`;
+    req.flush({ quantidade: 2, pacotes: [{ ...app.dados, lote, _id: '1' }, { ...app.dados, lote, _id: '2' }] });
     expect(app.estoque()).toBe(2);
     expect(app.quantidade).toBe(1);
     expect(app.aviso()).toContain('2 pacote(s)');
+    expect(app.aviso()).toContain(lote);
     http.verify();
   });
 });
