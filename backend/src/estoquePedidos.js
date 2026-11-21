@@ -10,6 +10,7 @@ export async function travarEstoque(session, Controle = ControleEstoque) {
 }
 export function mudarStatus(pedido, status, autor) {
   pedido.status = status; pedido.historico.push({ status, data: new Date(), autor });
+  if (status === 'aceito' && !pedido.emailAceite) pedido.emailAceite = { estado: 'pendente', tentativas: 0, proximaTentativa: new Date() };
 }
 export async function reservar(pedido, session, Model = Pacote) {
   for (const item of pedido.itens) {

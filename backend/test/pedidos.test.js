@@ -176,6 +176,7 @@ test('aceita exatamente a quantidade pedida e entrega registra a venda uma únic
   const f = fixture(); await f.estoque('brasileirinho', 12);
   const pedido = await f.criar([{ tipo: 'brasileirinho', quantidade: 10 }]);
   await f.alterar(pedido, 'aceito');
+  assert.equal(f.estado().pedidos[0].emailAceite.estado, 'pendente');
   assert.equal(f.estado().pacotes.filter(p => p.status === 'em_estoque').length, 2);
   assert.equal(f.estado().pacotes.filter(p => p.status === 'reservado').length, 10);
   await f.alterar(pedido, 'aceito');
@@ -206,6 +207,7 @@ test('produção reserva o disponível e cadastro de novos pacotes completa auto
   assert.equal(f.estado().pedidos[0].status, 'em_producao');
   await f.estoque('picante', 3);
   assert.equal(f.estado().pedidos[0].status, 'aceito');
+  assert.equal(f.estado().pedidos[0].emailAceite.estado, 'pendente');
   assert.equal(f.estado().pacotes.filter(p => p.status === 'reservado').length, 7);
   assert.equal(f.estado().pacotes.filter(p => p.status === 'em_estoque').length, 1);
 });

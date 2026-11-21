@@ -16,6 +16,11 @@ const schema = new mongoose.Schema({
     endereco: { type: String, required: true, maxlength: 500 },
     referencia: { type: String, maxlength: 200, default: '' },
   }, { _id: false }), default: undefined },
+  emailAceite: { type: new mongoose.Schema({
+    estado: { type: String, enum: ['pendente', 'enviando', 'enviado', 'falhou'], required: true },
+    tentativas: { type: Number, default: 0 },
+    proximaTentativa: Date, bloqueadoAte: Date, enviadoEm: Date, providerId: String, token: String,
+  }, { _id: false }), default: undefined },
   chaveEnvio: { type: String, required: true },
   itens: { type: [itemSchema], required: true },
   status: { type: String, enum: ['pedido_enviado', 'em_producao', 'aceito', 'entregue', 'encerrado', 'recusado'], default: 'pedido_enviado', index: true },
@@ -23,4 +28,5 @@ const schema = new mongoose.Schema({
 }, { timestamps: true, collection: 'pedidos', optimisticConcurrency: true });
 schema.index({ cliente: 1, chaveEnvio: 1 }, { unique: true });
 schema.index({ status: 1, createdAt: 1 });
+schema.index({ 'emailAceite.estado': 1, 'emailAceite.proximaTentativa': 1 });
 export const Pedido = mongoose.model('Pedido', schema);

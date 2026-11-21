@@ -12,6 +12,7 @@
     "check": "node --check src/server.js && node --check src/database/MongoConnection.js && node --check src/models/Pacote.js",
     "test": "node --test",
     "db:check": "node --env-file-if-exists=.env src/database/checkConnection.js",
+    "email:check": "node --env-file-if-exists=.env src/checkEmail.js",
     "admin:grant": "node --env-file-if-exists=.env src/database/grantAdmin.js"
   },
   "dependencies": {

@@ -7,14 +7,17 @@ import { Sessao } from './models/Sessao.js';
 import { EmailAdministrador } from './models/EmailAdministrador.js';
 import { Pedido } from './models/Pedido.js';
 import { ControleEstoque } from './models/ControleEstoque.js';
+import { iniciarEmailsPedidos } from './emailPedidos.js';
 
 const port = Number(process.env.PORT ?? 3001);
 const server = createServer(protegerApp(criarApp()));
+let pararEmails = () => {};
 
 try {
   await mongoConnection.connect();
   await Promise.all([Usuario.init(), Sessao.init(), EmailAdministrador.init(), Pedido.init(), ControleEstoque.init()]);
   await ControleEstoque.updateOne({ _id: 'principal' }, { $setOnInsert: { versao: 0 } }, { upsert: true });
+  pararEmails = iniciarEmailsPedidos();
   server.listen(port, '127.0.0.1', () => {
     console.log(`Power Beef API: http://localhost:${port}`);
   });
@@ -26,6 +29,7 @@ try {
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.once(signal, () => {
+    pararEmails();
     server.close(async () => {
       await mongoConnection.disconnect();
     });

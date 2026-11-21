@@ -2,7 +2,34 @@
 
 ## Cliente
 
-O cliente chega ao catálogo (`/cliente`) com os quatro sabores: Brasileirinho, Picante, Churrasco e Original. Adiciona de 1 a 1000 pacotes de cada sabor ao carrinho (`/carrinho`), altera quantidades e finaliza. O pedido nasce como `pedido_enviado`, sem baixar estoque. Não há preços definidos nem cobrança online nesta fase: finalizar significa enviar a solicitação para análise.
+No fechamento, novos pedidos exigem nome do destinatário (3–100 caracteres), WhatsApp brasileiro com DDD e nove dígitos, endereço completo (10–500 caracteres) e referência opcional (até 200 caracteres). A API normaliza o telefone para `55DD9XXXXXXXX` e valida DDD e formato; não confirma a existência da conta WhatsApp. O e-mail é sempre o da conta autenticada. Os dados ficam no pedido, não no armazenamento local do endereço, e aparecem em “Dados de entrega” para o titular e administradores. Pedidos antigos continuam consultáveis sem esses campos.
+
+## Aviso por e-mail de pedido aceito
+
+A integração usa a API HTTPS do Resend, sem dependência adicional. A transição para `aceito` grava `emailAceite` na mesma transação do estoque, inclusive na aceitação automática da produção. Um consumidor no backend consulta a fila a cada cinco segundos. Falhas de e-mail não desfazem a aceitação; há até cinco tentativas com espera crescente, registro de envio e chave de idempotência no provedor. Pedidos recusados não são selecionados. Os avisos são apenas de aceite nesta versão; outros status não enviam mensagens.
+
+O recurso vem desativado. Para habilitar depois da publicação:
+
+1. Criar uma conta em https://resend.com e verificar o domínio de envio com os registros DNS indicados pelo provedor. Manter os registros A do site e eventuais registros de e-mail existentes.
+2. Criar uma chave restrita a envio e configurá-la somente no `.env` do backend, nunca no Git ou no frontend.
+3. Definir `EMAIL_ENABLED=true`, `RESEND_API_KEY`, `EMAIL_FROM=Power Beef <pedidos@powerbeefcwb.com.br>` e `APP_URL=https://powerbeefcwb.com.br`.
+4. Reiniciar o serviço com `sudo systemctl restart power-beef` e acompanhar os resultados no painel Resend. A fila persistida é retomada após reiniciar. Avisos pendentes desde a atualização também serão processados quando o envio for ativado.
+
+Pedidos que já estavam aceitos antes desta implementação não ganham avisos retroativos. `emailAceite.estado=enviado` significa aceitação pelo provedor, não entrega garantida na caixa de entrada. A deduplicação do Resend dura 24 horas; após esse período, recuperações de uma tentativa sem confirmação podem duplicar um aviso. Falhas finais permanecem como `falhou` para conferência no banco; não há reenvio manual pela interface nesta versão.
+
+Os testes usam envio simulado e não disparam e-mails reais. Limites atuais: https://resend.com/docs/knowledge-base/account-quotas-and-limits. Chaves de idempotência: https://resend.com/docs/dashboard/emails/idempotency-keys.
+
+### Conferir a configuração e testar o provedor
+
+Dentro de `backend`, execute `npm run email:check` para validar a configuração local. Esse comando não conecta ao banco, não processa a fila, não envia mensagens e não revela a chave. Ele não confirma o DNS nem a validade da chave no provedor.
+
+Depois que o domínio estiver **Verified**, execute `npm run email:check -- --send seu@email.com` para enviar uma única mensagem explicitamente identificada como teste. O teste pode ser feito com `EMAIL_ENABLED=false` para não liberar a fila de pedidos. A resposta informa o ID aceito pelo Resend; a entrega efetiva deve ser conferida no painel do Resend e na caixa do destinatário.
+
+O `EMAIL_FROM` deve usar o domínio verificado. `EMAIL_REPLY_TO` é opcional: configure uma caixa que você acompanha se quiser receber respostas dos clientes; o remetente de envio não cria automaticamente uma caixa postal. Use `APP_URL` com somente a origem HTTPS, sem `/pedidos` ou outros caminhos. Ative `EMAIL_ENABLED=true` apenas depois do teste e reinicie o backend.
+
+## Fluxo de compra
+
+O cliente chega ao catálogo (`/cliente`) com os quatro sabores: Brasileirinho, Picante, Churrasco e Original. Adiciona de 1 a 1000 pacotes de cada sabor ao carrinho (`/carrinho`), altera quantidades, informa a entrega e finaliza. O pedido nasce como `pedido_enviado`, sem baixar estoque. O carrinho apresenta o total promocional estimado; não há cobrança online nesta fase: finalizar significa enviar a solicitação para análise.
 
 O carrinho é persistido no navegador e separado por conta. O envio possui uma chave única por conteúdo de carrinho: uma tentativa repetida após falha de rede não cria outro pedido. O servidor valida sabores, quantidades e titularidade, sem confiar em identificadores de cliente enviados pelo navegador.
 
