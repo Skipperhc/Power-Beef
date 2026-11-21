@@ -1,3 +1,4 @@
+import { acompanharNotificacoes } from '../shared/notificacoes.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
@@ -6,18 +7,19 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Paginacao } from '../shared/paginacao';
 import { Paginador } from '../shared/paginador';
-import { FiltroColunaComponent } from '../shared/filtro-coluna';
+import { FiltrosTabela } from '../shared/filtros-tabela';
 import { Filtros, FiltroColuna, filtrar } from '../shared/filtros';
 import { PRODUTOS } from './carrinho.service';
 
 interface Pedido {
+  entrega?: { nome: string; whatsapp: string; endereco: string; referencia?: string };
   _id: string; clienteNome: string; clienteEmail: string; createdAt: string; status: string;
   itens: { tipo: string; quantidade: number; reservada: number }[];
   historico: { status: string; data: string }[];
 }
 export const STATUS_PEDIDO: Record<string, string> = { pedido_enviado: 'Pedido enviado', em_producao: 'Em produção', aceito: 'Aceito', entregue: 'Entregue', encerrado: 'Encerrado', recusado: 'Recusado' };
 
-@Component({ selector: 'app-pedidos', imports: [DatePipe, Paginador, FiltroColunaComponent], templateUrl: './pedidos.html', styleUrls: ['../app.scss', './pedidos.scss'] })
+@Component({ selector: 'app-pedidos', imports: [DatePipe, Paginador, FiltrosTabela], templateUrl: './pedidos.html', styleUrls: ['../app.scss', './pedidos.scss'] })
 export class Pedidos {
   private readonly http = inject(HttpClient);
   readonly auth = inject(AuthService);
@@ -27,6 +29,7 @@ export class Pedidos {
   readonly alterando = signal('');
   readonly erro = signal('');
   readonly aviso = signal(inject(ActivatedRoute).snapshot.queryParamMap.has('enviado') ? 'Pedido enviado! Acompanhe o status abaixo.' : '');
+  private readonly alertas = acompanharNotificacoes(this.erro, this.aviso);
   readonly rotulos = STATUS_PEDIDO;
   readonly status = Object.keys(STATUS_PEDIDO);
   readonly filtros = signal<Filtros>({});
@@ -34,6 +37,7 @@ export class Pedidos {
   readonly paginacao = new Paginacao(() => this.filtrados());
   constructor() { this.carregar(); }
   nome(tipo: string) { return PRODUTOS.find(p => p.tipo === tipo)?.nome || tipo; }
+  whatsappUrl(numero: string) { return /^55\d{2}9\d{8}$/.test(numero) ? 'https://wa.me/' + numero : null; }
   opcoes(pedido: Pedido) {
     return ({ pedido_enviado: ['aceito', 'em_producao', 'recusado'], em_producao: ['aceito', 'recusado'], aceito: ['entregue', 'recusado'], entregue: ['encerrado'], encerrado: [], recusado: [] } as Record<string, string[]>)[pedido.status] || [];
   }

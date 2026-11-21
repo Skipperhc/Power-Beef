@@ -3,21 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { DatePipe } from '@angular/common';
-import { FiltroColunaComponent } from '../shared/filtro-coluna';
+import { FiltrosTabela } from '../shared/filtros-tabela';
 import { filtrar, valoresUnicos, Filtros, FiltroColuna } from '../shared/filtros';
 import { Paginacao } from '../shared/paginacao';
 import { Paginador } from '../shared/paginador';
+import { NotificacoesService } from '../shared/notificacoes.service';
 
 interface PacoteEstoque { tipo: string; status: string; lote?: string; dataVenda?: string | null; }
 interface ResumoVenda { chave: string; tipo: string; lote: string; dataVenda: string; quantidade: number; }
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, FiltroColunaComponent, Paginador],
+  imports: [RouterLink, DatePipe, FiltrosTabela, Paginador],
   templateUrl: './dashboard.html',
   styleUrls: ['../app.scss', './dashboard.scss'],
 })
 export class Dashboard {
+  private readonly notificacoes = inject(NotificacoesService);
   private readonly http = inject(HttpClient);
   private readonly pacotes = signal<PacoteEstoque[]>([]);
   readonly carregando = signal(true);
@@ -54,7 +56,7 @@ export class Dashboard {
     this.carregando.set(true); this.erro.set(false);
     this.http.get<PacoteEstoque[]>('/api/pacotes').pipe(finalize(() => this.carregando.set(false))).subscribe({
       next: pacotes => this.pacotes.set(pacotes),
-      error: () => this.erro.set(true),
+      error: () => { this.erro.set(true); this.notificacoes.erro('Não foi possível consultar o estoque e as vendas. Verifique sua conexão e tente atualizar novamente.'); },
     });
   }
 }

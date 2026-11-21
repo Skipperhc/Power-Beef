@@ -1,3 +1,4 @@
+import { acompanharNotificacoes } from '../shared/notificacoes.service';
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -6,7 +7,7 @@ import { finalize, forkJoin } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { Paginacao } from '../shared/paginacao';
 import { Paginador } from '../shared/paginador';
-import { FiltroColunaComponent } from '../shared/filtro-coluna';
+import { FiltrosTabela } from '../shared/filtros-tabela';
 import { Filtros, FiltroColuna, filtrar } from '../shared/filtros';
 
 interface UsuarioGestao {
@@ -15,7 +16,7 @@ interface UsuarioGestao {
 }
 interface EmailAdmin { _id: string; email: string; }
 
-@Component({ selector: 'app-usuarios', imports: [FormsModule, DatePipe, Paginador, FiltroColunaComponent], templateUrl: './usuarios.html', styleUrls: ['../app.scss', './usuarios.scss'] })
+@Component({ selector: 'app-usuarios', imports: [FormsModule, DatePipe, Paginador, FiltrosTabela], templateUrl: './usuarios.html', styleUrls: ['../app.scss', './usuarios.scss'] })
 export class Usuarios {
   private readonly http = inject(HttpClient);
   readonly auth = inject(AuthService);
@@ -24,6 +25,7 @@ export class Usuarios {
   readonly ocupado = signal(false);
   readonly erro = signal('');
   readonly aviso = signal('');
+  private readonly alertas = acompanharNotificacoes(this.erro, this.aviso);
   readonly editando = signal<UsuarioGestao | null>(null);
   readonly filtros = signal<Filtros>({});
   readonly filtrados = computed(() => filtrar(this.usuarios(), this.filtros(), ['perfil', 'provedor', 'ativo']));

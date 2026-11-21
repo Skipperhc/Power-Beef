@@ -19,15 +19,16 @@
     }
   </section>
   <section class="painel vendas" aria-labelledby="vendas-titulo" [attr.aria-busy]="carregando()">
-    <div class="titulo-lista"><div><h2 id="vendas-titulo">Vendas</h2><p class="ajuda">Resumo por dia, sabor e lote. Vendas do mesmo dia são somadas.</p></div><button class="secundario" type="button" (click)="limparFiltrosVendas()">Limpar filtros</button></div>
+    <div class="titulo-lista"><div><h2 id="vendas-titulo">Vendas</h2><p class="ajuda">Resumo por dia, sabor e lote. Vendas do mesmo dia são somadas.</p></div></div>
     @if (carregando()) { <p role="status">Carregando vendas…</p> }
     @else if (erro()) { <p>As vendas não puderam ser carregadas. Use Atualizar para tentar novamente.</p> }
     @else {
       <p class="ajuda" role="status">{{ paginacaoVendas.itens().length }} registros nesta página · {{ vendasFiltradas().length }} encontrados de {{ vendas().length }} registros · {{ totalVendido() }} pacotes vendidos nos resultados</p>
-      <div class="tabela"><table><caption>Vendas registradas</caption><thead><tr>
-        <th scope="col">Data da venda<app-filtro-coluna titulo="Data da venda" tipo="data" [filtro]="filtrosVendas()['dataVenda'] || {}" (filtroChange)="filtrarVenda('dataVenda', $event)" /></th>
-        <th scope="col">Sabor / lote<app-filtro-coluna titulo="Sabor vendido" tipo="selecao" [opcoes]="tiposVendidos()" [filtro]="filtrosVendas()['tipo'] || {}" (filtroChange)="filtrarVenda('tipo', $event)" /><app-filtro-coluna titulo="Lote vendido" [filtro]="filtrosVendas()['lote'] || {}" (filtroChange)="filtrarVenda('lote', $event)" /></th>
-        <th scope="col">Quantidade<app-filtro-coluna titulo="Quantidade vendida" tipo="selecao" [opcoes]="quantidadesVendidas()" [filtro]="filtrosVendas()['quantidade'] || {}" (filtroChange)="filtrarVenda('quantidade', $event)" /></th>
+      <app-filtros-tabela titulo="vendas" [campos]="[{campo:'dataVenda',titulo:'Data da venda',tipo:'data'},{campo:'tipo',titulo:'Sabor vendido',tipo:'selecao',opcoes:tiposVendidos()},{campo:'lote',titulo:'Lote vendido',tipo:'texto'},{campo:'quantidade',titulo:'Quantidade vendida',tipo:'selecao',opcoes:quantidadesVendidas()}]" [filtros]="filtrosVendas()" (aplicados)="filtrosVendas.set($event); paginacaoVendas.primeira()" />
+<div class="tabela"><table><caption>Vendas registradas</caption><thead><tr>
+        <th scope="col">Data da venda</th>
+        <th scope="col">Sabor / lote</th>
+        <th scope="col">Quantidade</th>
       </tr></thead><tbody>
         @for (venda of paginacaoVendas.itens(); track venda.chave) { <tr><td>{{ venda.dataVenda ? (venda.dataVenda | date:'dd/MM/yyyy':'UTC') : 'Sem data registrada' }}</td><td><strong class="sabor">{{ venda.tipo }}</strong><small>{{ venda.lote || 'Sem lote' }}</small></td><td>{{ venda.quantidade }}</td></tr> }
         @if (!vendasFiltradas().length) { <tr><td colspan="3" class="vazio">{{ vendas().length ? 'Nenhuma venda corresponde aos filtros.' : 'Nenhuma venda registrada.' }}</td></tr> }

@@ -1,7 +1,7 @@
 ﻿<main>
   <section class="abertura"><div><p class="eyebrow">CONTROLE DE PACOTES</p><h1>Listar pacotes</h1><p>Consulte, filtre e atualize os pacotes cadastrados.</p></div><div class="contador"><strong>{{ estoque() }}</strong><span>pacotes em estoque</span></div></section>
-  @if (erro()) { <p role="alert" class="mensagem erro">{{ erro() }}</p> }
-  @if (aviso()) { <p role="status" class="mensagem sucesso">{{ aviso() }}</p> }
+  
+  
   <div class="layout layout-listagem">
 @if (editarId()) {    <section class="painel formulario"><h2>{{ editarId() ? 'Editar pacote' : 'Adicionar pacotes' }}</h2><p class="ajuda">{{ editarId() ? 'Você está editando uma unidade.' : 'Adicione vários pacotes com o mesmo sabor, lote e datas.' }}</p>
       <form #form="ngForm" (ngSubmit)="salvar(form)"><fieldset [disabled]="ocupado() || !!confirmar()">
@@ -22,19 +22,20 @@
         @if (editarId()) { <button type="button" class="secundario" (click)="cancelar(form)">Cancelar edição</button> }
       </fieldset></form>
     </section>
-}    <section class="painel listagem"><div class="titulo-lista"><div><h2>Pacotes cadastrados</h2><p class="ajuda" role="status">{{ paginacao.itens().length }} pacotes nesta página · {{ filtrados().length }} encontrados de {{ pacotes().length }} cadastrados</p></div><button type="button" class="secundario" (click)="carregar()" [disabled]="carregando() || ocupado() || !!confirmar()">Atualizar</button><button type="button" class="secundario" (click)="limparFiltros()">Limpar filtros</button></div>
+}    <section class="painel listagem"><div class="titulo-lista"><div><h2>Pacotes cadastrados</h2><p class="ajuda" role="status">{{ paginacao.itens().length }} pacotes nesta página · {{ filtrados().length }} encontrados de {{ pacotes().length }} cadastrados</p></div><button type="button" class="secundario" (click)="carregar()" [disabled]="carregando() || ocupado() || !!confirmar()">Atualizar</button></div>
       @if (carregando()) { <p role="status" class="vazio">Carregando pacotes…</p> }
       @else if (!pacotes().length) { <div class="vazio"><h3>Nenhum pacote para mostrar</h3><p>Use Adicionar pacotes no menu lateral para cadastrar o primeiro lote.</p></div> }
-      @else { <div class="tabela"><table><caption>Estoque de Power Beef</caption><thead><tr>
+      @else { <app-filtros-tabela titulo="pacotes" [campos]="[{campo:'tipo',titulo:'Sabor',tipo:'selecao',opcoes:tiposUnicos()},{campo:'lote',titulo:'Lote',tipo:'texto'},{campo:'observacoes',titulo:'Observações',tipo:'texto'},{campo:'dataFabricacao',titulo:'Fabricação',tipo:'data'},{campo:'validade',titulo:'Validade',tipo:'data'},{campo:'status',titulo:'Status',tipo:'selecao',opcoes:statusUnicos(),rotulos:rotulosStatus},{campo:'dataVenda',titulo:'Venda',tipo:'data'}]" [filtros]="filtros()" (aplicados)="filtros.set($event); paginacao.primeira()" />
+<div class="tabela"><table><caption>Estoque de Power Beef</caption><thead><tr>
         <th scope="col">Sabor / lote
-          <app-filtro-coluna titulo="Sabor" tipo="selecao" [opcoes]="tiposUnicos()" [filtro]="filtros()['tipo'] || {}" (filtroChange)="filtrarColuna('tipo', $event)" />
-          <app-filtro-coluna titulo="Lote" [filtro]="filtros()['lote'] || {}" (filtroChange)="filtrarColuna('lote', $event)" />
-          <app-filtro-coluna titulo="Observações" [filtro]="filtros()['observacoes'] || {}" (filtroChange)="filtrarColuna('observacoes', $event)" />
+          
+          
+          
         </th>
-        <th scope="col">Fabricação<app-filtro-coluna titulo="Fabricação" tipo="data" [filtro]="filtros()['dataFabricacao'] || {}" (filtroChange)="filtrarColuna('dataFabricacao', $event)" /></th>
-        <th scope="col">Validade<app-filtro-coluna titulo="Validade" tipo="data" [filtro]="filtros()['validade'] || {}" (filtroChange)="filtrarColuna('validade', $event)" /></th>
-        <th scope="col">Status<app-filtro-coluna titulo="Status" tipo="selecao" [opcoes]="statusUnicos()" [rotulos]="rotulosStatus" [filtro]="filtros()['status'] || {}" (filtroChange)="filtrarColuna('status', $event)" /></th>
-        <th scope="col">Venda<app-filtro-coluna titulo="Venda" tipo="data" [filtro]="filtros()['dataVenda'] || {}" (filtroChange)="filtrarColuna('dataVenda', $event)" /></th>
+        <th scope="col">Fabricação</th>
+        <th scope="col">Validade</th>
+        <th scope="col">Status</th>
+        <th scope="col">Venda</th>
         <th scope="col">Ações</th></tr></thead><tbody>
         @for (pacote of paginacao.itens(); track pacote._id) { <tr><td><strong class="sabor">{{ pacote.tipo }}</strong><small>{{ pacote.lote }}</small>@if (pacote.observacoes) { <small class="observacao">{{ pacote.observacoes }}</small> }</td><td>{{ pacote.dataFabricacao | date:'dd/MM/yyyy':'UTC' }}</td><td>{{ pacote.validade | date:'dd/MM/yyyy':'UTC' }}</td><td><span class="status" [class.disponivel]="pacote.status === 'em_estoque'">{{ nomeStatus(pacote.status) }}</span></td><td>{{ pacote.dataVenda ? (pacote.dataVenda | date:"dd/MM/yyyy":"UTC") : "—" }}</td><td class="acoes"><button type="button" (click)="editar(pacote)" [disabled]="ocupado() || !!confirmar() || !!pacote.pedido">Editar</button><button type="button" class="perigo" (click)="confirmar.set(pacote)" [disabled]="ocupado() || !!confirmar() || !!pacote.pedido">Excluir</button></td></tr> }
       @if (!filtrados().length) { <tr><td colspan="6" class="vazio">Nenhum pacote corresponde aos filtros.</td></tr> }</tbody></table></div><app-paginador [controle]="paginacao" titulo="pacotes" [desabilitado]="ocupado() || !!confirmar()" /> }

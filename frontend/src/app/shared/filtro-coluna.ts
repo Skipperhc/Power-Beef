@@ -7,8 +7,10 @@ import { FiltroColuna } from './filtros';
   imports: [FormsModule],
   template: `
     @if (tipo === 'data') {
-      <label>De<input type="date" [attr.aria-label]="titulo + ': data inicial'" [ngModel]="filtro.inicio || ''" (ngModelChange)="alterar('inicio', $event)"></label>
-      <label>Até<input type="date" [attr.aria-label]="titulo + ': data final'" [ngModel]="filtro.fim || ''" (ngModelChange)="alterar('fim', $event)"></label>
+      <div class="intervalo-datas">
+        <label>Data início<input type="date" [attr.aria-label]="titulo + ': data inicial'" [ngModel]="filtro.inicio || ''" (ngModelChange)="alterar('inicio', $event)"></label>
+        <label>Data fim<input type="date" [attr.aria-label]="titulo + ': data final'" [ngModel]="filtro.fim || ''" (ngModelChange)="alterar('fim', $event)"></label>
+      </div>
       @if (filtro.inicio && filtro.fim && filtro.inicio > filtro.fim) { <small role="alert">Intervalo invertido</small> }
     } @else if (tipo === 'selecao') {
       <select [attr.aria-label]="'Filtrar ' + titulo" [ngModel]="filtro.valor || ''" (ngModelChange)="alterar('valor', $event)">
@@ -19,7 +21,7 @@ import { FiltroColuna } from './filtros';
       <input type="search" [attr.aria-label]="'Filtrar ' + titulo" [placeholder]="titulo" [ngModel]="filtro.valor || ''" (ngModelChange)="alterar('valor', $event)">
     }
   `,
-  styles: `:host { display:block; margin-top:8px; min-width:125px; } input,select { width:100%; box-sizing:border-box; border:1px solid #c8c2b8; border-radius:5px; background:white; padding:7px; font:inherit; font-size:12px; color:#393229; } label { display:block; font-size:11px; font-weight:normal; margin-top:5px; } small { color:#9a2923; } :focus-visible { outline:2px solid #c76a22; outline-offset:2px; }`,
+  styles: `:host { display:block; margin-top:10px; min-width:0; } input,select { width:100%; min-width:0; min-height:44px; box-sizing:border-box; border:1px solid #d8ccbc; border-radius:8px; background:white; padding:10px 12px; font:inherit; font-size:14px; color:#393229; } .intervalo-datas { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } label { display:flex; flex-direction:column; gap:7px; min-width:0; font-size:12px; color:#796b5b; font-weight:normal; margin:0; } small { display:block; color:#9a2923; margin-top:6px; } :focus-visible { outline:2px solid #c76a22; outline-offset:2px; } @media(max-width:560px){input,select{font-size:16px;padding:10px 6px}.intervalo-datas{gap:10px}}`,
 })
 export class FiltroColunaComponent {
   @Input() titulo = '';

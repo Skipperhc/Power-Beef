@@ -1,10 +1,11 @@
+import { acompanharNotificacoes } from '../shared/notificacoes.service';
 ﻿import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { finalize, map } from 'rxjs';
-import { FiltroColunaComponent } from '../shared/filtro-coluna';
+import { FiltrosTabela } from '../shared/filtros-tabela';
 import { filtrar, valoresUnicos, Filtros, FiltroColuna } from '../shared/filtros';
 import { Paginacao } from '../shared/paginacao';
 import { Paginador } from '../shared/paginador';
@@ -16,7 +17,7 @@ interface DadosPacote {
 }
 interface Pacote extends DadosPacote { _id: string; createdAt: string; updatedAt: string; dataVenda?: string | null; pedido?: string | null; }
 
-@Component({ imports: [FormsModule, DatePipe, FiltroColunaComponent, Paginador], selector: 'app-pacotes', styleUrl: '../app.scss', templateUrl: './pacotes.html' })
+@Component({ imports: [FormsModule, DatePipe, FiltrosTabela, Paginador], selector: 'app-pacotes', styleUrl: '../app.scss', templateUrl: './pacotes.html' })
 export class Pacotes {
   @ViewChild('form') formulario?: NgForm;
   private readonly http = inject(HttpClient);
@@ -35,6 +36,7 @@ export class Pacotes {
   readonly ocupado = signal(false);
   readonly erro = signal('');
   readonly aviso = signal('');
+  private readonly alertas = acompanharNotificacoes(this.erro, this.aviso);
   readonly editarId = signal('');
   readonly confirmar = signal<Pacote | null>(null);
   readonly estoque = computed(() => this.pacotes().filter(p => p.status === 'em_estoque').length);
