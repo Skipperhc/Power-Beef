@@ -2,25 +2,20 @@
   <a routerLink="/" class="marca">POWER <strong>BEEF</strong></a>
   <span>{{ auth.usuario()?.nome || 'Gestão Power Beef' }}</span>
 </header>
-<div class="conteudo-app" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
+<div class="conteudo-app" [class.com-menu]="!!auth.usuario()" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
 <app-notificacoes />
-@if (auth.usuario()) { <aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (keydown.escape)="menuAberto.set(false)">
-  <button type="button" class="alternar-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu' : 'Expandir menu'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><span aria-hidden="true">{{ menuAberto() ? '→' : '←' }}</span></button>
-  <nav id="funcoes-menu" aria-label="Navegação principal" [hidden]="!menuAberto()">
-    <h2>Funções</h2>
-    @if (auth.usuario()?.perfil === 'administrador') {
-      <a routerLink="/" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Dashboard</a>
-      <a routerLink="/pedidos" routerLinkActive="ativo" ariaCurrentWhenActive="page">Gerenciar pedidos</a>
-      <a routerLink="/pacotes/adicionar" routerLinkActive="ativo" ariaCurrentWhenActive="page">Adicionar pacotes</a>
-      <a routerLink="/vendas/adicionar" routerLinkActive="ativo" ariaCurrentWhenActive="page">Adicionar vendas</a>
-      <a routerLink="/pacotes" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Listar pacotes</a>
+@if (auth.usuario() && menuAberto()) { <button type="button" class="fundo-menu" aria-label="Fechar menu lateral" (click)="menuAberto.set(false)"></button> }
+@if (auth.usuario()) { <aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (click)="clicarBarra($event)" (keydown.escape)="menuAberto.set(false)">
+  <button type="button" class="alternar-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu pelo topo' : 'Expandir menu pelo topo'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><app-menu-icon [name]="menuAberto() ? 'more' : 'menu'" /></button>
+  <nav id="funcoes-menu" aria-label="Navegação principal" (click)="navegarMenu($event)">
+    <h2 class="menu-texto">Funções</h2>
+    @for (tela of telasMenu; track tela.url) {
+      <a [routerLink]="tela.url" routerLinkActive="ativo" [routerLinkActiveOptions]="{exact:tela.exato}" ariaCurrentWhenActive="page" [attr.aria-label]="tela.nome" [title]="tela.nome"><app-menu-icon [name]="tela.icone" /><span class="menu-texto">{{tela.nome}}</span></a>
     }
-    <a routerLink="/cliente" routerLinkActive="ativo" ariaCurrentWhenActive="page">Produtos</a>
-    <a routerLink="/carrinho" routerLinkActive="ativo" ariaCurrentWhenActive="page">Carrinho</a>
-    @if (auth.usuario()?.perfil === 'administrador') {
-      <a routerLink="/usuarios" routerLinkActive="ativo" ariaCurrentWhenActive="page">Usuários</a>
-    } @else {
-      <a routerLink="/pedidos" routerLinkActive="ativo" ariaCurrentWhenActive="page">Meus pedidos</a>
-    }
-  <button type="button" (click)="sair()">Sair da conta</button>@if (erroSaida()) { <p role="alert">{{ erroSaida() }}</p> }</nav>
+    <button type="button" class="sair-menu" (click)="sair()" aria-label="Sair da conta" title="Sair da conta"><app-menu-icon name="logout" /><span class="menu-texto">Sair da conta</span></button>
+    @if (erroSaida()) { <p role="alert">{{ erroSaida() }}</p> }
+  </nav>
+  <button type="button" class="alternar-menu alternar-menu-inferior" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu pelo rodapé' : 'Expandir menu pelo rodapé'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><app-menu-icon [name]="menuAberto() ? 'more' : 'menu'" /></button>
 </aside> }
+
+

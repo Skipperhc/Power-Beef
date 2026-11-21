@@ -16,13 +16,16 @@ describe('Menu lateral e funções dedicadas', () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     const button = el.querySelector<HTMLButtonElement>('.alternar-menu')!;
-    expect(button.textContent?.trim()).toBe('←');
-    expect(el.querySelector<HTMLElement>('#funcoes-menu')!.hidden).toBe(true);
+    expect(button.querySelector('svg')).toBeTruthy();
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(el.querySelectorAll('.alternar-menu').length).toBe(2);
+    expect(el.querySelectorAll('#funcoes-menu a app-menu-icon').length).toBe(8);
+    expect(el.querySelector<HTMLElement>('#funcoes-menu')!.hidden).toBe(false);
     button.click(); fixture.detectChanges();
     expect(button.getAttribute('aria-expanded')).toBe('true');
     expect(el.querySelector<HTMLElement>('#funcoes-menu')!.hidden).toBe(false);
     expect(el.querySelectorAll('#funcoes-menu a').length).toBe(8);
-    button.click(); fixture.detectChanges();
+    el.querySelector<HTMLButtonElement>('.alternar-menu-inferior')!.click(); fixture.detectChanges();
     expect(button.getAttribute('aria-expanded')).toBe('false');
   });
   it('abre cada formulário em sua própria rota', async () => {
