@@ -1,0 +1,37 @@
+.carrinho-flutuante { position: fixed; right: calc(var(--menu-recolhido, 64px) + 20px); bottom: max(24px, env(safe-area-inset-bottom)); z-index: 15; display: flex; align-items: center; justify-content: center; width: 62px; height: 62px; border: 1px solid #f4bf79; border-radius: 50%; background: #9d4516; color: white; box-shadow: 0 6px 24px #3c201b40; cursor: pointer; transition: right .2s ease; }
+:host(.menu-aberto) .carrinho-flutuante { right: calc(var(--menu-expandido, 280px) + 20px); }
+.qtd-flutuante { position: absolute; top: -5px; right: -5px; min-width: 24px; height: 24px; padding: 0 5px; display: grid; place-items: center; border-radius: 20px; background: #ffcc83; border: 2px solid #f6f3ed; color: #492916; font-size: 11px; font-weight: 800; }
+dialog { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; border: 1px solid #e1d6c7; border-radius: 20px; padding: 26px; background: #fffdf8; color: #30271f; box-shadow: 0 24px 80px #1e110e40; overflow-y: auto; overscroll-behavior: contain; }
+dialog::backdrop { background: #20181099; }
+.resumo-cabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.resumo-cabecalho p { margin: 0 0 6px; color: #985326; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+h2 { font-size: 23px; margin: 0; letter-spacing: -.5px; }
+.fechar-resumo { flex: none; width: 40px; height: 40px; border: 1px solid #e6ddd1; border-radius: 10px; background: #f5efe5; color: #5b4633; font-size: 25px; cursor: pointer; }
+.resumo-quantidade { margin: 14px 0 20px; font-size: 14px; color: #786653; }
+.sabores-resumo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sabor-resumo { aspect-ratio: 1; border-radius: 14px; padding: 18px; color: white; display: flex; flex-direction: column; justify-content: space-between; background: #254b34; }
+.sabor-resumo[data-sabor=picante] { background: #97382d; }
+.sabor-resumo[data-sabor=churrasco] { background: #775133; }
+.sabor-resumo[data-sabor=original] { background: #84631f; }
+h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.sabor-contagem { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sabor-icone { font-size: 23px; white-space: nowrap; }
+.sabor-contagem strong { font-size: clamp(26px, 6vw, 38px); line-height: 1; }
+.sabor-resumo { gap: 10px; }
+.sabor-acoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.sabor-acoes button { display: flex; justify-content: center; align-items: center; min-width: 0; min-height: 40px; padding: 5px 0; border: 1px solid #ffffff50; border-radius: 8px; background: #ffffff16; color: white; cursor: pointer; }
+.sabor-acoes button:hover:not(:disabled) { background: #ffffff30; }
+.sabor-acoes button:disabled { opacity: .35; cursor: default; }
+.sabor-acoes button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+.sabor-acoes app-menu-icon { width: 18px; height: 18px; }
+@media(max-width:400px) { .sabor-resumo { gap: 8px; } .sabor-acoes { gap: 4px; } .sabor-acoes button { min-height: 36px; } }
+.resumo-total { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid #e8ded0; padding-top: 20px; margin-top: 22px; }
+.resumo-total span { font-size: 14px; font-weight: 600; }
+.resumo-total small { display: block; margin-top: 5px; font-size: 10px; color: #827463; }
+.resumo-total strong { font-size: 27px; color: #7b3a17; white-space: nowrap; }
+.abrir-carrinho { display: flex; justify-content: space-between; align-items: center; min-height: 46px; margin-top: 22px; padding: 12px 16px; border-radius: 9px; background: #9d4516; color: white; text-decoration: none; font-size: 14px; font-weight: 600; }
+.resumo-vazio { color: #786653; font-size: 12px; line-height: 1.6; margin-bottom: 0; }
+:focus-visible { outline: 3px solid #c76a22; outline-offset: 3px; }
+@media(max-width:760px) { :host(.menu-aberto) .carrinho-flutuante { visibility: hidden; } .carrinho-flutuante { right: calc(var(--menu-recolhido, 64px) + 12px); width: 56px; height: 56px; bottom: max(16px, env(safe-area-inset-bottom)); } }
+@media(max-width:400px) { dialog { padding: 18px; } h2 { font-size: 21px; } .sabor-resumo { padding: 13px; } h3 { font-size: 14px; } .sabor-icone { font-size: 20px; } }
+@media(prefers-reduced-motion:reduce) { .carrinho-flutuante { transition: none; } }

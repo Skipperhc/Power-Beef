@@ -4,12 +4,13 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 import { MenuIcon } from './menu-icon';
+import { CarrinhoResumo } from './pedidos/carrinho-resumo';
 import { Notificacoes } from './shared/notificacoes';
 import { acompanharNotificacoes } from './shared/notificacoes.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, MenuIcon, Notificacoes],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, MenuIcon, CarrinhoResumo, Notificacoes],
   templateUrl: './app.html',
   styleUrls: ['./app.scss', './shell.scss'],
 })

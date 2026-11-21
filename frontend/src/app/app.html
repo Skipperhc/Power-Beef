@@ -4,6 +4,7 @@
 </header>
 <div class="conteudo-app" [class.com-menu]="!!auth.usuario()" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
 <app-notificacoes />
+@if (auth.usuario()) { <app-carrinho-resumo [menuAberto]="menuAberto()" /> }
 @if (auth.usuario() && menuAberto()) { <button type="button" class="fundo-menu" aria-label="Fechar menu lateral" (click)="menuAberto.set(false)"></button> }
 @if (auth.usuario()) { <aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (click)="clicarBarra($event)" (keydown.escape)="menuAberto.set(false)">
   <button type="button" class="alternar-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu pelo topo' : 'Expandir menu pelo topo'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><app-menu-icon [name]="menuAberto() ? 'more' : 'menu'" /></button>

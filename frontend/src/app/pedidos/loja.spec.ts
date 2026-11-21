@@ -105,4 +105,5 @@ describe('Compra de pacotes e pedidos', () => {
     fixture.componentInstance.alterar(fixture.componentInstance.enviados()[0], 'aceito');
     TestBed.inject(HttpTestingController).expectNone('/api/pedidos/000000000000000000000010');
   });
+
 });

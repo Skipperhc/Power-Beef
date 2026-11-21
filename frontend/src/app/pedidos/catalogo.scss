@@ -1,0 +1,8 @@
+.meus-pedidos-atalho { display:flex; align-items:center; gap:14px; min-height:64px; padding:14px 18px; border:1px solid #dcc3a5; border-radius:12px; background:#fffaf2; color:#713c1d; text-decoration:none; box-shadow:0 3px 12px #78481808; transition:background .15s,border-color .15s; }
+.meus-pedidos-atalho:hover { background:#f8ebda; border-color:#b67b42; }
+.meus-pedidos-atalho > app-menu-icon { box-sizing:content-box; padding:10px; border-radius:9px; background:#f0dfca; }
+.meus-pedidos-atalho > span:not(.atalho-seta) { display:flex; flex-direction:column; gap:5px; }
+.meus-pedidos-atalho strong { font-size:14px; white-space:nowrap; }
+.meus-pedidos-atalho small { font-size:11px; color:#94765c; white-space:nowrap; }
+.atalho-seta { margin-left:auto; font-size:20px; }
+@media(max-width:560px) { .abertura .links-loja { width:100%; } .meus-pedidos-atalho { width:100%; } }
