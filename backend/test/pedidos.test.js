@@ -8,6 +8,7 @@ import { gerarLote } from '../src/lotes.js';
 const admin = { id: '000000000000000000000001', perfil: 'administrador', nome: 'Admin', email: 'a@example.com' };
 const cliente = { id: '000000000000000000000002', perfil: 'cliente', nome: 'Cliente', email: 'c@example.com' };
 const chave = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const entregaPadrao = { nome: 'Cliente Teste', whatsapp: '5541999068051', endereco: 'Rua de Teste, 123, Centro, Curitiba/PR, 80000-000', referencia: '' };
 
 test('serviço de estoque aplica datas automáticas e impede alterar datas existentes', async () => {
   const f = fixture(); const pacotes = await f.estoque('original', 2);
@@ -137,7 +138,7 @@ function fixture() {
   };
   const dependencias = { Model, Pedidos, Controle };
   let numero = 0;
-  const criar = async (itens, usuario = cliente, chaveEnvio = chave(++numero)) => (await gerenciarPedidos({ method: 'POST' }, '/api/pedidos', usuario, async () => ({ itens, chaveEnvio }), Pedidos)).body;
+  const criar = async (itens, usuario = cliente, chaveEnvio = chave(++numero), entrega = entregaPadrao) => (await gerenciarPedidos({ method: 'POST' }, '/api/pedidos', usuario, async () => ({ itens, chaveEnvio, entrega }), Pedidos)).body;
   const estoque = (tipo, quantidade) => cadastrarPacotes({ tipo, lote: 'TESTE', dataFabricacao: '2026-11-01', validade: '2027-05-01' }, quantidade, Model, Pedidos, Controle);
   const alterar = (pedido, status) => alterarPedido(pedido._id, status, admin, dependencias);
   return { criar, estoque, alterar, dependencias, Model, Pedidos, Controle, estado: () => estado };
@@ -243,6 +244,8 @@ test('reenvio não duplica pedidos e clientes só consultam seus próprios pedid
   const f = fixture(); const itens = [{ tipo: 'original', quantidade: 1 }];
   const a = await f.criar(itens, cliente, chave(50)); const repetido = await f.criar(itens, cliente, chave(50));
   assert.equal(a._id, repetido._id); assert.equal(f.estado().pedidos.length, 1);
+  assert.deepEqual(a.entrega, entregaPadrao);
+  await assert.rejects(f.criar(itens, cliente, chave(50), { ...entregaPadrao, endereco: 'Outro endereço, Curitiba/PR' }), e => e.status === 409);
   await assert.rejects(f.criar([{ tipo: 'picante', quantidade: 1 }], cliente, chave(50)), e => e.status === 409);
   const outro = { ...cliente, id: '000000000000000000000003' };
   await f.criar(itens, outro);
@@ -257,4 +260,11 @@ test('rejeita carrinho adulterado, sabores repetidos e quantidades inválidas', 
   for (const itens of [[], [{ tipo: 'outro', quantidade: 1 }], [{ tipo: 'original', quantidade: 0 }], [{ tipo: 'original', quantidade: 1.5 }], [{ tipo: 'original', quantidade: 1001 }], [{ tipo: 'original', quantidade: 1, reservada: 1 }], [{ tipo: 'original', quantidade: 1 }, { tipo: 'original', quantidade: 2 }]]) {
     assert.throws(() => validarPedido({ itens, chaveEnvio: chave(1) }), e => e.status === 400);
   }
+});
+
+test('API exige entrega, normaliza contato e não aceita campos extras', async () => {
+  const f = fixture(), itens = [{ tipo: 'original', quantidade: 1 }];
+  await assert.rejects(gerenciarPedidos({method:'POST'}, '/api/pedidos', cliente, async()=>({itens,chaveEnvio:chave(99)}), f.Pedidos), e=>e.status===400);
+  const p = await f.criar(itens, cliente, chave(100), {...entregaPadrao,whatsapp:'(41) 99906-8051'});
+  assert.equal(p.entrega.whatsapp, '5541999068051');
 });

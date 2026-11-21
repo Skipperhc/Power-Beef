@@ -3,10 +3,11 @@ import { Pedido } from './models/Pedido.js';
 import { Pacote, TIPOS_POWER_BEEF } from './models/Pacote.js';
 import { ControleEstoque } from './models/ControleEstoque.js';
 import { travarEstoque, reservar, mudarStatus, atenderProducao, conflito } from './estoquePedidos.js';
+import { validarEntrega } from './entrega.js';
 
 const erro = (message, status = 400) => Object.assign(new Error(message), { status });
 export function validarPedido(dados) {
-  if (!dados || Object.keys(dados).some(k => !['itens', 'chaveEnvio'].includes(k)) ||
+  if (!dados || Object.keys(dados).some(k => !['itens', 'chaveEnvio', 'entrega'].includes(k)) ||
       typeof dados.chaveEnvio !== 'string' || !/^[a-f0-9-]{36}$/i.test(dados.chaveEnvio) ||
       !Array.isArray(dados.itens) || !dados.itens.length || dados.itens.length > 4) throw erro('Carrinho inválido.');
   const tipos = new Set();
@@ -60,15 +61,15 @@ export async function gerenciarPedidos(req, path, usuario, lerJson, Pedidos = Pe
   if (id && !mongoose.isObjectIdOrHexString(id)) throw erro('ID inválido.');
   if (!id && req.method === 'GET') return { status: 200, body: await Pedidos.find(admin ? {} : { cliente: usuario.id }).sort({ createdAt: -1 }).lean() };
   if (!id && req.method === 'POST') {
-    const dados = await lerJson(req); const itens = validarPedido(dados);
+    const dados = await lerJson(req); const itens = validarPedido(dados); const entrega = validarEntrega(dados.entrega);
     const filtro = { cliente: usuario.id, chaveEnvio: dados.chaveEnvio };
     let pedido = await Pedidos.findOne(filtro);
     if (!pedido) {
-      try { pedido = await Pedidos.create({ ...filtro, clienteNome: usuario.nome, clienteEmail: usuario.email, itens, historico: [{ status: 'pedido_enviado', autor: usuario.id }] }); }
+      try { pedido = await Pedidos.create({ ...filtro, clienteNome: usuario.nome, clienteEmail: usuario.email, entrega, itens, historico: [{ status: 'pedido_enviado', autor: usuario.id }] }); }
       catch (e) { if (e.code !== 11000) throw e; pedido = await Pedidos.findOne(filtro); }
     }
     const conteudo = lista => JSON.stringify(lista.map(i => [i.tipo, i.quantidade]).sort());
-    if (!pedido || conteudo(pedido.itens) !== conteudo(itens)) throw conflito('Esse envio já foi usado em outro pedido. Atualize o carrinho.');
+    if (!pedido || conteudo(pedido.itens) !== conteudo(itens) || Object.keys(entrega).some(campo => pedido.entrega?.[campo] !== entrega[campo])) throw conflito('Esse envio já foi usado em outro pedido. Atualize o carrinho.');
     return { status: 201, body: pedido };
   }
   if (id && req.method === 'GET') {

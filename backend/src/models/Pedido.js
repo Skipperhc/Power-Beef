@@ -10,6 +10,12 @@ const schema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true, index: true },
   clienteNome: { type: String, required: true },
   clienteEmail: { type: String, required: true },
+  entrega: { type: new mongoose.Schema({
+    nome: { type: String, required: true, maxlength: 100 },
+    whatsapp: { type: String, required: true, match: /^55\d{2}9\d{8}$/ },
+    endereco: { type: String, required: true, maxlength: 500 },
+    referencia: { type: String, maxlength: 200, default: '' },
+  }, { _id: false }), default: undefined },
   chaveEnvio: { type: String, required: true },
   itens: { type: [itemSchema], required: true },
   status: { type: String, enum: ['pedido_enviado', 'em_producao', 'aceito', 'entregue', 'encerrado', 'recusado'], default: 'pedido_enviado', index: true },
