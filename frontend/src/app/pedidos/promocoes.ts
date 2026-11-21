@@ -1,8 +1,8 @@
-export const PRECO_UNITARIO_CENTAVOS = 1990;
+export const PRECO_UNITARIO_CENTAVOS = 1890;
 const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 export const formatarPreco = (centavos: number) => moeda.format(centavos / 100);
 export const PROMOCOES = [
-  { quantidade: 1, titulo: '1 pacote', precoCentavos: 1990, porUnidade: false },
+  { quantidade: 1, titulo: '1 pacote', precoCentavos: 1890, porUnidade: false },
   { quantidade: 4, titulo: '4 pacotes', precoCentavos: 6990, porUnidade: false },
   { quantidade: 10, titulo: '10 pacotes', precoCentavos: 15990, porUnidade: false },
   { quantidade: 25, titulo: '25+ pacotes', precoCentavos: 1490, porUnidade: true },
