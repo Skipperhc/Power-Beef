@@ -76,6 +76,7 @@ describe('Compra de pacotes e pedidos', () => {
   it('envia um pedido, mantém o carrinho na falha e reutiliza a chave no reenvio', async () => {
     const fixture = TestBed.createComponent(Carrinho); fixture.detectChanges(); await fixture.whenStable();
     const carrinho = TestBed.inject(CarrinhoService); carrinho.adicionar('brasileirinho', 10);
+    fixture.componentInstance.entrega = { nome: 'Cliente Teste', whatsapp: '(41) 99906-8051', endereco: 'Rua Teste, 123, Curitiba/PR', referencia: '' };
     fixture.detectChanges(); await fixture.whenStable();
     const form = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
     const http = TestBed.inject(HttpTestingController);
@@ -83,6 +84,7 @@ describe('Compra de pacotes e pedidos', () => {
     fixture.componentInstance.finalizar(form);
     const primeira = http.expectOne('/api/pedidos');
     expect(primeira.request.body.itens).toEqual([{ tipo: 'brasileirinho', quantidade: 10 }]);
+    expect(primeira.request.body.entrega.nome).toBe('Cliente Teste');
     const chave = primeira.request.body.chaveEnvio;
     primeira.flush({}, { status: 503, statusText: 'Unavailable' });
     expect(carrinho.total()).toBe(10);
@@ -106,4 +108,19 @@ describe('Compra de pacotes e pedidos', () => {
     TestBed.inject(HttpTestingController).expectNone('/api/pedidos/000000000000000000000010');
   });
 
+  it('bloqueia o pedido sem entrega e renova a chave quando o endereço muda', async () => {
+    const fixture = TestBed.createComponent(Carrinho); fixture.detectChanges(); await fixture.whenStable();
+    const carrinho = TestBed.inject(CarrinhoService); carrinho.adicionar('original', 1);
+    fixture.detectChanges(); await fixture.whenStable();
+    const form = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
+    fixture.componentInstance.finalizar(form); TestBed.inject(HttpTestingController).expectNone('/api/pedidos');
+    fixture.componentInstance.entrega = { nome: 'Cliente Teste', whatsapp: '123', endereco: 'Rua Teste, 123', referencia: '' };
+    fixture.detectChanges(); await fixture.whenStable();
+    fixture.componentInstance.finalizar(form); TestBed.inject(HttpTestingController).expectNone('/api/pedidos');
+    const entrega = { nome: 'Cliente Teste', whatsapp: '41999068051', endereco: 'Rua Teste, 123', referencia: '' };
+    const a = carrinho.prepararPedido(entrega), b = carrinho.prepararPedido(entrega);
+    expect(a.chaveEnvio).toBe(b.chaveEnvio);
+    const c = carrinho.prepararPedido({...entrega,endereco:'Rua Nova, 456'});
+    expect(c.chaveEnvio).not.toBe(a.chaveEnvio);expect(carrinho.total()).toBe(1);
+  });
 });

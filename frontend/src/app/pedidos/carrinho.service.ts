@@ -10,9 +10,11 @@ export const PRODUTOS = [
 ];
 export interface ItemCarrinho { tipo: string; quantidade: number; }
 interface Carrinho { chaveEnvio: string; itens: ItemCarrinho[]; }
+export interface EntregaPedido { nome: string; whatsapp: string; endereco: string; referencia: string; }
 
 @Injectable({ providedIn: 'root' })
 export class CarrinhoService {
+  private ultimaEntrega = '';
   private readonly auth = inject(AuthService);
   private readonly carrinhos = signal<Record<string, Carrinho>>({});
   readonly atual = computed(() => this.carrinhos()[this.auth.usuario()?.id || '']);
@@ -35,6 +37,12 @@ export class CarrinhoService {
     });
   }
   nome(tipo: string) { return PRODUTOS.find(p => p.tipo === tipo)?.nome || tipo; }
+  prepararPedido(entrega: EntregaPedido) {
+    const assinatura = JSON.stringify([this.auth.usuario()?.id, entrega]);
+    if (this.ultimaEntrega && this.ultimaEntrega !== assinatura) this.gravar(this.itens());
+    this.ultimaEntrega = assinatura;
+    return { ...this.atual()!, entrega };
+  }
   adicionar(tipo: string, quantidade: number) {
     if (!PRODUTOS.some(p => p.tipo === tipo) || !Number.isInteger(quantidade) || quantidade < 1) return false;
     const existente = this.itens().find(i => i.tipo === tipo);
