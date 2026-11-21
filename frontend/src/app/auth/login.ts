@@ -1,3 +1,4 @@
+import { acompanharNotificacoes } from '../shared/notificacoes.service';
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -30,6 +31,7 @@ export class Login implements AfterViewInit, OnDestroy {
   readonly cadastro = signal(false);
   readonly ocupado = signal(false);
   readonly erro = signal('');
+  private readonly alertas = acompanharNotificacoes(this.erro);
   readonly googleAviso = signal('Carregando opção Google…');
   dados = { nome: '', email: '', senha: '' };
   confirmarSenha = '';
@@ -44,8 +46,8 @@ export class Login implements AfterViewInit, OnDestroy {
           window.google!.accounts.id.initialize({ client_id: config.googleClientId, callback: res => this.zone.run(() => this.entrarGoogle(res.credential)) });
           window.google!.accounts.id.renderButton(this.botaoGoogle.nativeElement, { theme: 'outline', size: 'large', text: 'continue_with' });
           this.googleAviso.set('');
-        } catch { this.googleAviso.set('Não foi possível carregar o Google. Recarregue a página.'); }
-      }, error: () => this.googleAviso.set('Não foi possível consultar a configuração do Google.'),
+        } catch { this.googleAviso.set(''); this.erro.set('Não foi possível carregar o Google. Recarregue a página.'); }
+      }, error: () => { this.googleAviso.set(''); this.erro.set('Não foi possível consultar a configuração do Google.'); },
     });
   }
   ngOnDestroy() { this.ativo = false; this.config?.unsubscribe(); }

@@ -3,6 +3,7 @@
   <span>{{ auth.usuario()?.nome || 'Gestão Power Beef' }}</span>
 </header>
 <div class="conteudo-app" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
+<app-notificacoes />
 @if (auth.usuario()) { <aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (keydown.escape)="menuAberto.set(false)">
   <button type="button" class="alternar-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu' : 'Expandir menu'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><span aria-hidden="true">{{ menuAberto() ? '→' : '←' }}</span></button>
   <nav id="funcoes-menu" aria-label="Navegação principal" [hidden]="!menuAberto()">
@@ -23,5 +24,3 @@
     }
   <button type="button" (click)="sair()">Sair da conta</button>@if (erroSaida()) { <p role="alert">{{ erroSaida() }}</p> }</nav>
 </aside> }
-
-
