@@ -2,6 +2,12 @@
 
 ## Cliente
 
+O catálogo (`/cliente`) e o carrinho (`/carrinho`) são públicos. A home abre o catálogo para visitantes e clientes; administradores continuam vendo o dashboard. Visitantes podem adicionar, remover e alterar quantidades, inclusive pela modal, antes de entrar. O botão “Entrar para finalizar pedido” abre o login com retorno ao carrinho; e-mail/senha, cadastro e Google preservam esse destino. Dados de entrega e criação de pedidos continuam exigindo sessão, e a API mantém a autenticação e a validação de itens.
+
+O carrinho de visitante fica em `localStorage`, na chave `pb_carrinho_visitante`, com expiração de 30 dias desde a última alteração. Guarda apenas sabores, quantidades, chave de envio e expiração; não armazena endereço, contato, senha nem pedido enviado. Preços são recalculados usando as promoções atuais. O cache existe somente naquele navegador/dispositivo e pode ser perdido se os dados locais forem apagados.
+
+Ao entrar, os itens de visitante são somados ao carrinho da conta e o cache de visitante é consumido. Um marcador evita importar duas vezes se a remoção do cache falhar. As contas continuam separadas: sair não transforma o carrinho autenticado em um carrinho público. Se a combinação exceder 1.000 unidades de um sabor, o limite é aplicado e uma notificação informa o ajuste. Se o armazenamento estiver indisponível, a compra continua em memória com um aviso.
+
 No fechamento, novos pedidos exigem nome do destinatário (3–100 caracteres), WhatsApp brasileiro com DDD e nove dígitos, endereço completo (10–500 caracteres) e referência opcional (até 200 caracteres). A API normaliza o telefone para `55DD9XXXXXXXX` e valida DDD e formato; não confirma a existência da conta WhatsApp. O e-mail é sempre o da conta autenticada. Os dados ficam no pedido, não no armazenamento local do endereço, e aparecem em “Dados de entrega” para o titular e administradores. Pedidos antigos continuam consultáveis sem esses campos.
 
 ## Aviso por e-mail de pedido aceito

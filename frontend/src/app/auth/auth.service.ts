@@ -20,9 +20,14 @@ export class AuthService {
     return this.http.post<{ usuario: Usuario }>(url, dados).pipe(tap(res => this.usuario.set(res.usuario)));
   }
 }
-export const autenticado: CanActivateFn = () => {
+export const sessaoOpcional: CanActivateFn = () => inject(AuthService).verificar().pipe(map(() => true));
+export const inicio: CanActivateFn = () => {
+  const auth = inject(AuthService), router = inject(Router);
+  return auth.verificar().pipe(map(u => u?.perfil === 'administrador' ? true : router.createUrlTree(['/cliente'])));
+};
+export const autenticado: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService); const router = inject(Router);
-  return auth.verificar().pipe(map(u => u ? true : router.createUrlTree(['/login'])));
+  return auth.verificar().pipe(map(u => u ? true : router.createUrlTree(['/login'], { queryParams: { retorno: state.url } })));
 };
 export const administrador: CanActivateFn = () => {
   const auth = inject(AuthService); const router = inject(Router);
@@ -32,7 +37,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router); const auth = inject(AuthService);
   if (!req.url.startsWith('/api/')) return next(req);
   return next(req.clone({ setHeaders: { 'X-Power-Beef': '1' } })).pipe(catchError(error => {
-    if (error.status === 401 && !req.url.startsWith('/api/auth/')) { auth.usuario.set(null); void router.navigateByUrl('/login'); }
+    if (error.status === 401 && !req.url.startsWith('/api/auth/')) { auth.usuario.set(null); void router.navigate(['/login'], { queryParams: { retorno: router.url } }); }
     throw error;
   }));
 };

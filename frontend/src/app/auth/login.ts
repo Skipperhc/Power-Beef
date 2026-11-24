@@ -2,7 +2,7 @@ import { acompanharNotificacoes } from '../shared/notificacoes.service';
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -21,11 +21,16 @@ function carregarGoogle() {
     document.head.appendChild(script);
   });
 }
-@Component({ selector: 'app-login', imports: [FormsModule], templateUrl: './login.html', styleUrls: ['../app.scss', './login.scss'] })
+@Component({ selector: 'app-login', imports: [FormsModule, RouterLink], templateUrl: './login.html', styleUrls: ['../app.scss', './login.scss'] })
 export class Login implements AfterViewInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly rota = inject(ActivatedRoute);
+  private voltarAposLogin() {
+    const retorno = this.rota.snapshot.queryParamMap.get('retorno') || '/';
+    void this.router.navigateByUrl(/^\/(carrinho|pedidos|cliente)([?#]|$)/.test(retorno) ? retorno : '/');
+  }
   private readonly zone = inject(NgZone);
   @ViewChild('botaoGoogle') botaoGoogle!: ElementRef<HTMLElement>;
   readonly cadastro = signal(false);
@@ -61,14 +66,14 @@ export class Login implements AfterViewInit, OnDestroy {
     this.ocupado.set(true); this.erro.set('');
     const request = this.cadastro() ? this.auth.cadastrar(this.dados) : this.auth.entrar(this.dados);
     request.pipe(finalize(() => this.ocupado.set(false))).subscribe({
-      next: () => { void this.router.navigateByUrl('/'); }, error: e => this.erro.set(e.error?.message || 'Não foi possível entrar. Verifique a conexão.'),
+      next: () => this.voltarAposLogin(), error: e => this.erro.set(e.error?.message || 'Não foi possível entrar. Verifique a conexão.'),
     });
   }
   private entrarGoogle(credential: string) {
     if (!this.ativo || this.ocupado()) return;
     this.ocupado.set(true); this.erro.set('');
     this.auth.google(credential).pipe(finalize(() => this.ocupado.set(false))).subscribe({
-      next: () => { void this.router.navigateByUrl('/'); }, error: e => this.erro.set(e.error?.message || 'Não foi possível entrar com Google.'),
+      next: () => this.voltarAposLogin(), error: e => this.erro.set(e.error?.message || 'Não foi possível entrar com Google.'),
     });
   }
 }

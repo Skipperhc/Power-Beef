@@ -21,6 +21,10 @@ export class App {
   readonly erroSaida = signal('');
   private readonly alertas = acompanharNotificacoes(this.erroSaida);
   get telasMenu() {
+    if (!this.auth.usuario()) return [
+      {url:'/cliente',nome:'Produtos',icone:'products',exato:false},
+      {url:'/carrinho',nome:'Carrinho',icone:'cart',exato:false},
+    ];
     const admin = this.auth.usuario()?.perfil === 'administrador';
     return [
       ...(admin ? [

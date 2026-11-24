@@ -1,5 +1,5 @@
 <main class="tela-formulario login"><section class="painel">
-  <p class="eyebrow">POWER BEEF · GESTÃO</p><h1>{{ cadastro() ? 'Crie sua conta' : 'Acesse sua conta' }}</h1><p class="ajuda">Entre para gerenciar o estoque e as vendas.</p>
+  <p class="eyebrow">POWER BEEF · GESTÃO</p><h1>{{ cadastro() ? 'Crie sua conta' : 'Acesse sua conta' }}</h1><p class="ajuda">Entre para finalizar sua compra e acompanhar seus pedidos.</p>
   
   <form #form="ngForm" (ngSubmit)="enviar(form)"><fieldset [disabled]="ocupado()">
     @if (cadastro()) { <label for="nome">Nome</label><input id="nome" name="nome" [(ngModel)]="dados.nome" required maxlength="100" autocomplete="name"> }
@@ -11,4 +11,4 @@
   </fieldset></form>
   <div class="divisor">ou continue com Google</div><div #botaoGoogle [class.bloqueado]="ocupado()"></div>
   @if (googleAviso()) { <p class="ajuda" role="status">{{ googleAviso() }}</p> }
-</section></main>
+<a routerLink="/cliente" class="voltar-catalogo">Continuar escolhendo sem entrar →</a></section></main>

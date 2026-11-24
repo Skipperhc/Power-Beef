@@ -30,6 +30,8 @@ export class Carrinho {
   readonly erro = signal('');
   private readonly alertas = acompanharNotificacoes(this.erro);
   finalizar(form: NgForm) {
+    if (this.enviando() || !this.carrinho.itens().length) return;
+    if (!this.auth.usuario()) { void this.router.navigate(['/login'], {queryParams:{retorno:'/carrinho'}}); return; }
     if (form.invalid || !this.whatsappValido || this.entrega.nome.trim().length < 3 || this.entrega.endereco.trim().length < 10 || this.enviando() || !this.carrinho.itens().length) return;
     const dados = this.carrinho.prepararPedido({ ...this.entrega, nome: this.entrega.nome.trim(), endereco: this.entrega.endereco.trim(), referencia: this.entrega.referencia.trim() });
     this.enviando.set(true); this.erro.set('');

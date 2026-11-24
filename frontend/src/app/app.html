@@ -1,22 +1,23 @@
 ﻿<header>
   <a routerLink="/" class="marca">POWER <strong>BEEF</strong></a>
-  <span>{{ auth.usuario()?.nome || 'Gestão Power Beef' }}</span>
+  <span>{{ auth.usuario()?.nome || 'Escolha seus sabores' }}</span>
 </header>
-<div class="conteudo-app" [class.com-menu]="!!auth.usuario()" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
+<div class="conteudo-app com-menu" [class.menu-expandido]="menuAberto()"><router-outlet /></div>
 <app-notificacoes />
-@if (auth.usuario()) { <app-carrinho-resumo [menuAberto]="menuAberto()" /> }
-@if (auth.usuario() && menuAberto()) { <button type="button" class="fundo-menu" aria-label="Fechar menu lateral" (click)="menuAberto.set(false)"></button> }
-@if (auth.usuario()) { <aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (click)="clicarBarra($event)" (keydown.escape)="menuAberto.set(false)">
+<app-carrinho-resumo [menuAberto]="menuAberto()" />
+@if (menuAberto()) { <button type="button" class="fundo-menu" aria-label="Fechar menu lateral" (click)="menuAberto.set(false)"></button> }
+<aside class="menu-lateral" [class.aberto]="menuAberto()" aria-label="Funções da aplicação" (click)="clicarBarra($event)" (keydown.escape)="menuAberto.set(false)">
   <button type="button" class="alternar-menu" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu pelo topo' : 'Expandir menu pelo topo'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><app-menu-icon [name]="menuAberto() ? 'more' : 'menu'" /></button>
   <nav id="funcoes-menu" aria-label="Navegação principal" (click)="navegarMenu($event)">
     <h2 class="menu-texto">Funções</h2>
     @for (tela of telasMenu; track tela.url) {
       <a [routerLink]="tela.url" routerLinkActive="ativo" [routerLinkActiveOptions]="{exact:tela.exato}" ariaCurrentWhenActive="page" [attr.aria-label]="tela.nome" [title]="tela.nome"><app-menu-icon [name]="tela.icone" /><span class="menu-texto">{{tela.nome}}</span></a>
     }
-    <button type="button" class="sair-menu" (click)="sair()" aria-label="Sair da conta" title="Sair da conta"><app-menu-icon name="logout" /><span class="menu-texto">Sair da conta</span></button>
+    @if (auth.usuario()) { <button type="button" class="sair-menu" (click)="sair()" aria-label="Sair da conta" title="Sair da conta"><app-menu-icon name="logout" /><span class="menu-texto">Sair da conta</span></button> }
+    @else { <a routerLink="/login" [queryParams]="{retorno:'/cliente'}" aria-label="Entrar na conta" title="Entrar na conta"><app-menu-icon name="users" /><span class="menu-texto">Entrar na conta</span></a> }
     @if (erroSaida()) { <p role="alert">{{ erroSaida() }}</p> }
   </nav>
   <button type="button" class="alternar-menu alternar-menu-inferior" (click)="menuAberto.set(!menuAberto())" [attr.aria-expanded]="menuAberto()" aria-controls="funcoes-menu" [attr.aria-label]="menuAberto() ? 'Recolher menu pelo rodapé' : 'Expandir menu pelo rodapé'" [title]="menuAberto() ? 'Recolher menu' : 'Expandir menu'"><app-menu-icon [name]="menuAberto() ? 'more' : 'menu'" /></button>
-</aside> }
+</aside>
 
 
