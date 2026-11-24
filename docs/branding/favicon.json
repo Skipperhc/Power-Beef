@@ -1,0 +1,12 @@
+{
+  "asset": "frontend/public/power-beef-icon.png",
+  "source": "Logo fornecida pelo usuário em 2026-11-24",
+  "tool": "imagegen, modo integrado, edição com fundo transparente",
+  "prompt": "Edit target: the logo image most recently attached by the user, a red circular POWER BEEF medallion with metallic gold rings and a dark beef/fist silhouette. Task: precise background extraction for browser favicon. Preserve the actual circular logo design, its red center, gold outer ring, black internal symbol, and the exact text POWER BEEF. Remove ONLY the surrounding dark square background and exterior cast shadow completely. Crop tightly to the outermost gold/red circular rim with a tiny transparent margin. Center the complete circular logo in a square RGBA PNG canvas, transparent pixels everywhere outside the circle. The circle should fill approximately 96 percent of canvas width and height. Do not redesign, reinterpret, add text, change the internal typography or symbol, add lighting or make a new logo. Output the faithful circular cutout as an image suitable as a favicon. Save the generated PNG to disk if supported and provide its local path.",
+  "exports": {
+    "frontend/public/favicon.ico": [16, 32, 48, 64, 128, 256],
+    "frontend/public/favicon-32x32.png": 32,
+    "frontend/public/apple-touch-icon.png": 180,
+    "frontend/public/power-beef-icon.png": 512
+  }
+}
